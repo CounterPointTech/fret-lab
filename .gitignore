@@ -1,0 +1,37 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Media cache (processed audio — never commit)
+media/
+*.wav
+*.m4a
+*.mp3
+*.opus
+
+# AI model checkpoints (auto-downloaded)
+models/
+*.ckpt
+*.onnx
+*.pth
+
+# Local state
+backend/fretlab.db
+.env
+.env.local
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# Scratch
+scratch/
+tmp/
