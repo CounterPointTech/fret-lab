@@ -1,10 +1,37 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api import jobs as jobs_api
+from app.api import search as search_api
+from app.api import songs as songs_api
+from app.db.session import init_db
+from app.jobs.queue import JobQueue
+from app.pipeline.ytdlp_download import download_song
+
 logger = logging.getLogger("fretlab")
 
-app = FastAPI(title="Fret Lab")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    queue = JobQueue()
+    queue.register("download", download_song)
+    queue.start()
+    app.state.job_queue = queue
+    logger.info("Job queue started")
+    try:
+        yield
+    finally:
+        await queue.stop()
+        logger.info("Job queue stopped")
+
+
+app = FastAPI(title="Fret Lab", lifespan=lifespan)
+app.include_router(search_api.router)
+app.include_router(songs_api.router)
+app.include_router(jobs_api.router)
 
 
 @app.get("/api/health")

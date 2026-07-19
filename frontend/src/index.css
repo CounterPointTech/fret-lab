@@ -1,1 +1,71 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-stage-950: #0c0a08;
+  --color-stage-900: #14110d;
+  --color-stage-800: #1e1a14;
+  --color-stage-700: #2b2519;
+  --color-stage-500: #57503f;
+  --color-stage-300: #a89e88;
+  --color-stage-100: #ece5d8;
+
+  --color-amp-300: #ffd489;
+  --color-amp-400: #ffb946;
+  --color-amp-500: #f59e0b;
+  --color-amp-600: #d97706;
+
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-glow-pulse: glow-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+body {
+  font-family: var(--font-display);
+  background-color: var(--color-stage-950);
+  color: var(--color-stage-100);
+  /* layered stage lighting: warm amp glow top-left, cool falloff, vignette */
+  background-image:
+    radial-gradient(1100px 500px at 18% -10%, rgb(245 158 11 / 0.14), transparent 65%),
+    radial-gradient(900px 600px at 95% 15%, rgb(120 90 40 / 0.08), transparent 60%),
+    radial-gradient(1400px 900px at 50% 120%, rgb(0 0 0 / 0.6), transparent 60%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--color-amp-500);
+  color: var(--color-stage-950);
+}

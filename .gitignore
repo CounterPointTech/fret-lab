@@ -22,7 +22,7 @@ models/
 *.pth
 
 # Local state
-backend/fretlab.db
+backend/fretlab.db*
 .env
 .env.local
 
