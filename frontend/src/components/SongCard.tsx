@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useJobEvents } from '../hooks/useJobEvents'
 import { formatDuration, type JobEvent, type Song } from '../lib/api'
@@ -8,6 +9,7 @@ interface Props {
   index: number
   onJobFinished: (event: JobEvent) => void
   onDelete: (videoId: string) => void
+  onSeparate: (videoId: string) => void
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -15,9 +17,14 @@ const STAGE_LABELS: Record<string, string> = {
   convert: 'converting',
   cached: 'cached',
   done: 'finishing',
+  'model-download': 'downloading model…',
+  vocals: 'isolating vocals…',
+  instruments: 'splitting instruments…',
+  encode: 'encoding…',
+  peaks: 'computing waveforms…',
 }
 
-export function SongCard({ song, index, onJobFinished, onDelete }: Props) {
+export function SongCard({ song, index, onJobFinished, onDelete, onSeparate }: Props) {
   const [confirming, setConfirming] = useState(false)
   const jobEvent = useJobEvents(song.active_job_id, onJobFinished)
 
@@ -69,13 +76,40 @@ export function SongCard({ song, index, onJobFinished, onDelete }: Props) {
       <div className="flex items-start justify-between gap-2 p-4">
         <div className="min-w-0">
           <h3 className="truncate font-semibold leading-tight text-stage-100" title={song.title}>
-            {song.title}
+            {song.status === 'ready' ? (
+              <Link to={`/songs/${song.video_id}`} className="transition hover:text-amp-300">
+                {song.title}
+              </Link>
+            ) : (
+              song.title
+            )}
           </h3>
           <p className="mt-1 truncate text-sm text-stage-300">{song.channel ?? 'Unknown channel'}</p>
           {failed && song.last_error && (
             <p className="mt-2 line-clamp-3 text-xs text-red-400/90" title={song.last_error}>
               {song.last_error}
             </p>
+          )}
+          {song.status === 'ready' && !inProgress && (
+            <div className="mt-3">
+              {song.stem_count >= 6 ? (
+                <Link
+                  to={`/songs/${song.video_id}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
+                >
+                  <StemIcon />
+                  Open stems
+                </Link>
+              ) : (
+                <button
+                  onClick={() => onSeparate(song.video_id)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amp-500/40 bg-amp-500/10 px-3 py-1.5 text-xs font-semibold text-amp-300 transition hover:bg-amp-500/20"
+                >
+                  <StemIcon />
+                  Separate stems
+                </button>
+              )}
+            </div>
           )}
         </div>
         {confirming ? (
@@ -106,6 +140,14 @@ export function SongCard({ song, index, onJobFinished, onDelete }: Props) {
         )}
       </div>
     </article>
+  )
+}
+
+function StemIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M4 5v14M9 8v8M14 3v18M19 9v6" />
+    </svg>
   )
 }
 

@@ -7,14 +7,14 @@ One click turns a library song into 6 cached, browser-playable stems (vocals, dr
 See `CLAUDE.md`. Phase 1 delivered the job queue + SSE + Library. `audio-separator` is installed and GPU-validated (Phase 0). Recipe from research: **BS-RoFormer** (`model_bs_roformer_ep_317_sdr_12.9755.ckpt`) splits vocals/instrumental at top quality, then **htdemucs_6s** on the instrumental yields guitar/bass/drums/piano/other. Models auto-download on first use (cache under `models/`, gitignored). Keep models warm-loaded in the worker between jobs.
 
 ## Tasks
-- [ ] `pipeline/separate.py`: cascade recipe above; write `media/{videoId}/stems/{vocals,drums,bass,guitar,piano,other}.wav`; progress callbacks per stage; handle model-download progress, GPU OOM (retry with segment option), missing source.
-- [ ] `pipeline/encode.py`: ffmpeg each stem → `.m4a` (AAC ~192k) for browser delivery.
-- [ ] `pipeline/peaks.py`: per-stem min/max peaks JSON (e.g. ~1000 buckets/track) → `media/{videoId}/peaks/{stem}.json` (wavesurfer can consume precomputed peaks).
-- [ ] `Stem` DB model (song_id, name, wav_path, m4a_path, peaks_path, duration). Job kind `separate` chained stages: separate → encode → peaks.
-- [ ] **Cache semantics:** if stems exist for videoId, job completes instantly (no reprocessing). Deleting a song clears cache.
-- [ ] API: `POST /api/songs/{id}/separate`, `GET /api/songs/{id}/stems`, static/streamed audio at `GET /api/media/{videoId}/stems/{stem}.m4a` (support Range requests).
-- [ ] Frontend: "Separate" action on library card with SSE progress (stage labels: "Isolating vocals… / Splitting instruments… / Encoding…"); song page lists stems with bare `<audio>` players (real player is Phase 3).
-- [ ] Tests: cache-hit short-circuit, OOM-retry path (mock), stems API, delete clears media.
+- [x] `pipeline/separate.py`: cascade recipe above; write `media/{videoId}/stems/{vocals,drums,bass,guitar,piano,other}.wav`; progress callbacks per stage; handle model-download progress, GPU OOM (retry with segment option), missing source.
+- [x] `pipeline/encode.py`: ffmpeg each stem → `.m4a` (AAC ~192k) for browser delivery.
+- [x] `pipeline/peaks.py`: per-stem min/max peaks JSON (e.g. ~1000 buckets/track) → `media/{videoId}/peaks/{stem}.json` (wavesurfer can consume precomputed peaks).
+- [x] `Stem` DB model (song_id, name, wav_path, m4a_path, peaks_path, duration). Job kind `separate` chained stages: separate → encode → peaks.
+- [x] **Cache semantics:** if stems exist for videoId, job completes instantly (no reprocessing). Deleting a song clears cache.
+- [x] API: `POST /api/songs/{id}/separate`, `GET /api/songs/{id}/stems`, static/streamed audio at `GET /api/media/{videoId}/stems/{stem}.m4a` (support Range requests).
+- [x] Frontend: "Separate" action on library card with SSE progress (stage labels: "Isolating vocals… / Splitting instruments… / Encoding…"); song page lists stems with bare `<audio>` players (real player is Phase 3).
+- [x] Tests: cache-hit short-circuit, OOM-retry path (mock), stems API, delete clears media.
 
 ## Acceptance criteria (demonstrate in transcript)
 1. A real library song separates end-to-end; job SSE shows staged progress; 6 `.wav` + 6 `.m4a` + 6 peaks JSON exist (dir listing shown); total time printed (expect < ~90s on 4090 incl. both models).

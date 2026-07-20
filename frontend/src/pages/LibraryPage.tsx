@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { SearchModal } from '../components/SearchModal'
 import { SongCard } from '../components/SongCard'
 import { useToast } from '../components/Toasts'
-import { addSong, deleteSong, listSongs, type JobEvent, type SearchResult, type Song } from '../lib/api'
+import { addSong, deleteSong, listSongs, separateSong, type JobEvent, type SearchResult, type Song } from '../lib/api'
 
 export function LibraryPage() {
   const [songs, setSongs] = useState<Song[] | null>(null)
@@ -42,6 +42,15 @@ export function LibraryPage() {
       toast('error', event.error)
     }
     void refresh()
+  }
+
+  async function handleSeparate(videoId: string) {
+    try {
+      await separateSong(videoId)
+      await refresh() // pick up the new active job so the card streams progress
+    } catch (err) {
+      toast('error', `Could not start separation: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   async function handleDelete(videoId: string) {
@@ -99,6 +108,7 @@ export function LibraryPage() {
               index={i}
               onJobFinished={handleJobFinished}
               onDelete={handleDelete}
+              onSeparate={handleSeparate}
             />
           ))}
         </div>

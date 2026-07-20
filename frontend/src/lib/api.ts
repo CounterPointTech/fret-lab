@@ -16,6 +16,16 @@ export interface Song {
   created_at: string | null
   active_job_id: string | null
   last_error: string | null
+  stem_count: number
+}
+
+export interface Stem {
+  id: number
+  song_id: string
+  name: string
+  duration_s: number | null
+  audio_url: string
+  peaks_url: string
 }
 
 export interface JobEvent {
@@ -60,6 +70,16 @@ export function listSongs(): Promise<{ songs: Song[] }> {
 
 export function deleteSong(videoId: string): Promise<void> {
   return request(`/api/songs/${videoId}`, { method: 'DELETE' })
+}
+
+export function getSong(videoId: string): Promise<{ song: Song; stems: Stem[] }> {
+  return request(`/api/songs/${videoId}`)
+}
+
+export function separateSong(
+  videoId: string,
+): Promise<{ job_id: string; already_running: boolean }> {
+  return request(`/api/songs/${videoId}/separate`, { method: 'POST' })
 }
 
 export function formatDuration(s: number | null): string {

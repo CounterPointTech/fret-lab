@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -73,6 +73,34 @@ class Job(Base):
             "created_at": _iso(self.created_at),
             "started_at": _iso(self.started_at),
             "finished_at": _iso(self.finished_at),
+        }
+
+
+class Stem(Base):
+    """One separated instrument track (vocals/drums/bass/guitar/piano/other).
+
+    Paths are stored relative to media_root so the cache dir can move.
+    """
+
+    __tablename__ = "stems"
+    __table_args__ = (UniqueConstraint("song_id", "name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    song_id: Mapped[str] = mapped_column(ForeignKey("songs.video_id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(16))
+    wav_path: Mapped[str] = mapped_column(Text)
+    m4a_path: Mapped[str] = mapped_column(Text)
+    peaks_path: Mapped[str] = mapped_column(Text)
+    duration_s: Mapped[float | None] = mapped_column(Float)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "song_id": self.song_id,
+            "name": self.name,
+            "duration_s": self.duration_s,
+            "audio_url": f"/api/media/{self.song_id}/stems/{self.name}.m4a",
+            "peaks_url": f"/api/media/{self.song_id}/peaks/{self.name}.json",
         }
 
 
