@@ -16,6 +16,7 @@ decorator==5.3.1
 diffq-fixed==0.2.4
 einops==0.8.2
 fastapi==0.139.2
+python-multipart==0.0.32
 filelock==3.29.0
 flatbuffers==25.12.19
 fsspec==2026.4.0

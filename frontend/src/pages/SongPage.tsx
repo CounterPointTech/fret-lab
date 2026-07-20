@@ -121,7 +121,7 @@ export function SongPage() {
             </div>
           </div>
         ) : stems.length > 0 ? (
-          <PracticeWorkspace stems={stems} />
+          <PracticeWorkspace videoId={song.video_id} stems={stems} />
         ) : song.status === 'ready' ? (
           <div className="animate-rise mt-4 flex flex-col items-start gap-3 rounded-xl border border-dashed border-stage-700 p-6">
             <p className="text-stage-300">

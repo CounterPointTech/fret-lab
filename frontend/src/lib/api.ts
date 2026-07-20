@@ -82,6 +82,47 @@ export function separateSong(
   return request(`/api/songs/${videoId}/separate`, { method: 'POST' })
 }
 
+export interface Transcription {
+  id: number
+  song_id: string
+  name: string
+  kind: 'guitarpro' | 'musicxml' | 'alphatex'
+  sync_bpm: number | null
+  sync_offset_s: number
+  created_at: string | null
+  file_url: string
+}
+
+export function listTranscriptions(
+  videoId: string,
+): Promise<{ transcriptions: Transcription[] }> {
+  return request(`/api/songs/${videoId}/transcriptions`)
+}
+
+export function uploadTranscription(
+  videoId: string,
+  file: File,
+): Promise<{ transcription: Transcription }> {
+  const form = new FormData()
+  form.append('file', file)
+  return request(`/api/songs/${videoId}/transcriptions`, { method: 'POST', body: form })
+}
+
+export function patchTranscription(
+  id: number,
+  patch: { name?: string; sync_bpm?: number; sync_offset_s?: number },
+): Promise<{ transcription: Transcription }> {
+  return request(`/api/transcriptions/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteTranscription(id: number): Promise<void> {
+  return request(`/api/transcriptions/${id}`, { method: 'DELETE' })
+}
+
 export function formatDuration(s: number | null): string {
   if (s == null) return '–:––'
   const m = Math.floor(s / 60)

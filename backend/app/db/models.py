@@ -104,4 +104,39 @@ class Stem(Base):
         }
 
 
+class Transcription(Base):
+    """One imported (or later AI-drafted) tab/notation file for a song.
+
+    `path` is relative to media_root (like Stem paths). `sync_bpm` and
+    `sync_offset_s` are the manual sync-point model v1: the BPM the real
+    audio plays the score's quarter notes at, and where score tick 0 lands
+    in the audio (seconds).
+    """
+
+    __tablename__ = "transcriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    song_id: Mapped[str] = mapped_column(ForeignKey("songs.video_id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(Text)
+    # guitarpro | musicxml | alphatex
+    kind: Mapped[str] = mapped_column(String(16))
+    path: Mapped[str] = mapped_column(Text)
+    sync_bpm: Mapped[float | None] = mapped_column(Float)
+    sync_offset_s: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    def to_dict(self) -> dict:
+        filename = self.path.rsplit("/", 1)[-1]
+        return {
+            "id": self.id,
+            "song_id": self.song_id,
+            "name": self.name,
+            "kind": self.kind,
+            "sync_bpm": self.sync_bpm,
+            "sync_offset_s": self.sync_offset_s,
+            "created_at": _iso(self.created_at),
+            "file_url": f"/api/media/{self.song_id}/transcriptions/{filename}",
+        }
+
+
 TERMINAL_JOB_STATUSES = frozenset({"done", "error", "cancelled"})

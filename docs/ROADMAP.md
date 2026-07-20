@@ -12,7 +12,7 @@ One phase per session. Each phase has a self-contained goal doc in `docs/goals/`
 | 1. Song acquisition & library | [phase-1-song-acquisition.md](goals/phase-1-song-acquisition.md) | ✅ 2026-07-19 |
 | 2. Separation pipeline & caching | [phase-2-separation.md](goals/phase-2-separation.md) | ✅ 2026-07-19 |
 | 3. Practice player (stems, speed, loop) | [phase-3-practice-player.md](goals/phase-3-practice-player.md) | ✅ 2026-07-19 |
-| 4. Tab & sheet music rendering | [phase-4-tab-rendering.md](goals/phase-4-tab-rendering.md) | ☐ |
+| 4. Tab & sheet music rendering | [phase-4-tab-rendering.md](goals/phase-4-tab-rendering.md) | ✅ 2026-07-19 |
 | 5. AI transcription draft | [phase-5-transcription.md](goals/phase-5-transcription.md) | ☐ |
 | 6. Correction editor | [phase-6-editor.md](goals/phase-6-editor.md) | ☐ |
 | 7. Theory Lab & Jam Mode | [phase-7-theory-lab.md](goals/phase-7-theory-lab.md) | ☐ |

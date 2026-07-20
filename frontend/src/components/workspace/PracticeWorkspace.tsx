@@ -5,6 +5,7 @@ import { useStemPlayer } from '../../hooks/useStemPlayer'
 import { MainWaveform } from './MainWaveform'
 import { SpeedTrainer } from './SpeedTrainer'
 import { StemLane } from './StemLane'
+import { TabSection } from './TabSection'
 import { TransportBar } from './TransportBar'
 
 interface PeaksFile {
@@ -15,12 +16,13 @@ interface PeaksFile {
 }
 
 interface Props {
+  videoId: string
   stems: Stem[]
 }
 
 const LANE_ORDER = ['vocals', 'guitar', 'bass', 'drums', 'piano', 'other']
 
-export function PracticeWorkspace({ stems }: Props) {
+export function PracticeWorkspace({ videoId, stems }: Props) {
   const sources = useMemo(
     () => stems.map((s) => ({ name: s.name, url: s.audio_url })),
     [stems],
@@ -195,6 +197,8 @@ export function PracticeWorkspace({ stems }: Props) {
       </div>
 
       <SpeedTrainer player={api.player} loop={api.loop} onRateApplied={api.setRate} />
+
+      <TabSection videoId={videoId} player={api} />
 
       <p className="text-center font-mono text-[11px] text-stage-500">
         space play/pause · L loop A/B/clear · [ ] speed · ← → seek 5s

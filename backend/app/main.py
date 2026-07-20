@@ -7,6 +7,7 @@ from app.api import jobs as jobs_api
 from app.api import media as media_api
 from app.api import search as search_api
 from app.api import songs as songs_api
+from app.api import transcriptions as transcriptions_api
 from app.db.session import init_db
 from app.jobs.queue import JobQueue
 from app.pipeline.separate import separate_song
@@ -42,6 +43,7 @@ app.include_router(search_api.router)
 app.include_router(songs_api.router)
 app.include_router(jobs_api.router)
 app.include_router(media_api.router)
+app.include_router(transcriptions_api.router)
 
 
 @app.get("/api/health")
