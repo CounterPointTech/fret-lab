@@ -11,7 +11,7 @@ One phase per session. Each phase has a self-contained goal doc in `docs/goals/`
 | 0. Foundation & environment proof | [phase-0-foundation.md](goals/phase-0-foundation.md) | ✅ 2026-07-19 |
 | 1. Song acquisition & library | [phase-1-song-acquisition.md](goals/phase-1-song-acquisition.md) | ✅ 2026-07-19 |
 | 2. Separation pipeline & caching | [phase-2-separation.md](goals/phase-2-separation.md) | ✅ 2026-07-19 |
-| 3. Practice player (stems, speed, loop) | [phase-3-practice-player.md](goals/phase-3-practice-player.md) | ☐ |
+| 3. Practice player (stems, speed, loop) | [phase-3-practice-player.md](goals/phase-3-practice-player.md) | ✅ 2026-07-19 |
 | 4. Tab & sheet music rendering | [phase-4-tab-rendering.md](goals/phase-4-tab-rendering.md) | ☐ |
 | 5. AI transcription draft | [phase-5-transcription.md](goals/phase-5-transcription.md) | ☐ |
 | 6. Correction editor | [phase-6-editor.md](goals/phase-6-editor.md) | ☐ |
@@ -37,7 +37,7 @@ Pipeline: yt-dlp → WAV → BS-RoFormer (vocals split) → htdemucs_6s (instrum
 
 ## Key risks (watch these)
 
-1. **Multi-stem time-stretch sync** — prototype first thing in Phase 3; fallback = pre-mixed single stretch bus.
+1. **Multi-stem time-stretch sync** — ✅ resolved in Phase 3: per-stem signalsmith-stretch nodes driven by identical scheduled time maps hold < 6ms inter-stem spread through 60s playback, seeks, loop wraps, and live rate changes (measured; see `/proto/sync` + `frontend/scripts/run-sync-proto.mjs`). No fallback needed.
 2. **YouTube bot detection** — keep yt-dlp updated; `--cookies-from-browser`; PO-token plugin if needed.
 3. **Transcription accuracy on distorted guitar** — it's a *draft*; the editor (Phase 6) is the product.
 4. **htdemucs_6s guitar-stem bleed** — validate on real songs; acceptable for practice use.
