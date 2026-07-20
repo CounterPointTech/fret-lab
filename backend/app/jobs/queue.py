@@ -39,9 +39,11 @@ class JobContext:
         queue: "JobQueue",
         cancel_event: asyncio.Event,
         loop: asyncio.AbstractEventLoop,
+        params: dict | None = None,
     ) -> None:
         self.job_id = job_id
         self.song_id = song_id
+        self.params: dict = params or {}
         self._queue = queue
         self._cancel_event = cancel_event
         self._loop = loop
@@ -72,6 +74,8 @@ class JobQueue:
         self._handlers: dict[str, Handler] = {}
         self._subscribers: dict[str, set[asyncio.Queue[JobEvent]]] = {}
         self._cancel_events: dict[str, asyncio.Event] = {}
+        # per-job handler params, in-memory only (queue does not survive restarts)
+        self._params: dict[str, dict] = {}
         self._worker_task: asyncio.Task | None = None
 
     # -- lifecycle ---------------------------------------------------------
@@ -96,7 +100,7 @@ class JobQueue:
 
     # -- public API --------------------------------------------------------
 
-    def enqueue(self, kind: str, song_id: str) -> str:
+    def enqueue(self, kind: str, song_id: str, params: dict | None = None) -> str:
         """Create a Job row and schedule it. Returns the job id."""
         if kind not in self._handlers:
             raise ValueError(f"No handler registered for job kind {kind!r}")
@@ -104,6 +108,8 @@ class JobQueue:
         with db_session() as db:
             db.add(Job(id=job_id, song_id=song_id, kind=kind, status="queued"))
         self._cancel_events[job_id] = asyncio.Event()
+        if params:
+            self._params[job_id] = dict(params)
         self._pending.put_nowait(job_id)
         return job_id
 
@@ -171,6 +177,7 @@ class JobQueue:
                 )
             finally:
                 self._cancel_events.pop(job_id, None)
+                self._params.pop(job_id, None)
                 self._pending.task_done()
 
     async def _run_one(self, job_id: str) -> None:
@@ -183,7 +190,10 @@ class JobQueue:
         if cancel_event.is_set():
             self._update(job_id, status="cancelled", mark_finished=True)
             return
-        ctx = JobContext(job_id, song_id, self, cancel_event, asyncio.get_running_loop())
+        ctx = JobContext(
+            job_id, song_id, self, cancel_event, asyncio.get_running_loop(),
+            params=self._params.get(job_id),
+        )
         self._update(job_id, status="running", mark_started=True)
         try:
             await self._handlers[kind](ctx)

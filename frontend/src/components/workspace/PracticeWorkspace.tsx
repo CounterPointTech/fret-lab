@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import type { Stem } from '../../lib/api'
+import type { Stem, Transcription } from '../../lib/api'
 import { useStemPlayer } from '../../hooks/useStemPlayer'
 import { MainWaveform } from './MainWaveform'
 import { SpeedTrainer } from './SpeedTrainer'
 import { StemLane } from './StemLane'
 import { TabSection } from './TabSection'
+import { TranscribeButton } from './TranscribeButton'
 import { TransportBar } from './TransportBar'
 
 interface PeaksFile {
@@ -21,6 +22,8 @@ interface Props {
 }
 
 const LANE_ORDER = ['vocals', 'guitar', 'bass', 'drums', 'piano', 'other']
+// pitched stems worth running Basic Pitch on (drums would be noise)
+const TRANSCRIBABLE = new Set(['guitar', 'bass', 'piano', 'other', 'vocals'])
 
 export function PracticeWorkspace({ videoId, stems }: Props) {
   const sources = useMemo(
@@ -30,6 +33,7 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
   const api = useStemPlayer(sources)
   const [peaksByStem, setPeaksByStem] = useState<Record<string, number[]>>({})
   const [pendingLoopA, setPendingLoopA] = useState<number | null>(null)
+  const [newDraft, setNewDraft] = useState<Transcription | null>(null)
   const apiRef = useRef(api)
   apiRef.current = api
 
@@ -191,6 +195,11 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
               onVolume={(v) => api.setVolume(stem.name, v)}
               onToggleMute={() => api.toggleMute(stem.name)}
               onToggleSolo={() => api.toggleSolo(stem.name)}
+              action={
+                TRANSCRIBABLE.has(stem.name) ? (
+                  <TranscribeButton videoId={videoId} stem={stem.name} onCreated={setNewDraft} />
+                ) : undefined
+              }
             />
           ) : null,
         )}
@@ -198,7 +207,7 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
 
       <SpeedTrainer player={api.player} loop={api.loop} onRateApplied={api.setRate} />
 
-      <TabSection videoId={videoId} player={api} />
+      <TabSection videoId={videoId} player={api} newTranscription={newDraft} />
 
       <p className="text-center font-mono text-[11px] text-stage-500">
         space play/pause · L loop A/B/clear · [ ] speed · ← → seek 5s

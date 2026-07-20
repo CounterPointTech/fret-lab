@@ -89,8 +89,30 @@ export interface Transcription {
   kind: 'guitarpro' | 'musicxml' | 'alphatex'
   sync_bpm: number | null
   sync_offset_s: number
+  source: 'upload' | 'generated'
+  params_json: string | null
   created_at: string | null
   file_url: string
+}
+
+export interface TranscribeOptions {
+  stem: string
+  tuning?: string
+  capo?: number
+  onset_threshold?: number
+  frame_threshold?: number
+  min_note_length_ms?: number
+}
+
+export function transcribeStem(
+  videoId: string,
+  opts: TranscribeOptions,
+): Promise<{ job_id: string; already_running: boolean }> {
+  return request(`/api/songs/${videoId}/transcribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(opts),
+  })
 }
 
 export function listTranscriptions(

@@ -11,6 +11,7 @@ from app.api import transcriptions as transcriptions_api
 from app.db.session import init_db
 from app.jobs.queue import JobQueue
 from app.pipeline.separate import separate_song
+from app.pipeline.transcribe import transcribe_song
 from app.pipeline.ytdlp_download import download_song
 
 # uvicorn only configures its own loggers — give the app's fretlab.* loggers
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI):
     queue = JobQueue()
     queue.register("download", download_song)
     queue.register("separate", separate_song)
+    queue.register("transcribe", transcribe_song)
     queue.start()
     app.state.job_queue = queue
     logger.info("Job queue started")

@@ -29,9 +29,24 @@ def get_engine() -> Engine:
     return _engine
 
 
+# (table, column, DDL) added after the table already shipped — create_all does not
+# alter existing tables, so patch them in explicitly (SQLite ADD COLUMN only).
+_COLUMN_MIGRATIONS = (
+    ("transcriptions", "source", "VARCHAR(16) NOT NULL DEFAULT 'upload'"),
+    ("transcriptions", "params_json", "TEXT"),
+)
+
+
 def init_db() -> None:
     settings.db_path.parent.mkdir(parents=True, exist_ok=True)
-    Base.metadata.create_all(get_engine())
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+    with engine.connect() as conn:
+        for table, column, ddl in _COLUMN_MIGRATIONS:
+            existing = {row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")}
+            if existing and column not in existing:
+                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+        conn.commit()
 
 
 def reset_engine() -> None:

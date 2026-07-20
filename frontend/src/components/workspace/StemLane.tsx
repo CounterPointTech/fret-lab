@@ -27,9 +27,11 @@ interface Props {
   onVolume: (v: number) => void
   onToggleMute: () => void
   onToggleSolo: () => void
+  /** Extra control rendered at the lane's right edge (e.g. transcribe). */
+  action?: React.ReactNode
 }
 
-export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, onToggleSolo }: Props) {
+export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, onToggleSolo, action }: Props) {
   const visual = STEM_VISUALS[name] ?? { label: name, dot: 'bg-stage-500', wave: '#a89e88' }
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const silenced = mix.muted || sidelined
@@ -106,6 +108,7 @@ export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, 
       />
 
       <canvas ref={canvasRef} className="h-9 min-w-0 flex-1" />
+      {action}
     </div>
   )
 }

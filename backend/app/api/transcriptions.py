@@ -10,14 +10,15 @@ import logging
 import re
 import uuid
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile
 from fastapi import Path as PathParam
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.config import settings
-from app.db.models import Song, Transcription
+from app.db.models import Job, Song, Stem, Transcription
 from app.db.session import db_session
+from app.pipeline.fret_assign import TUNINGS
 
 logger = logging.getLogger("fretlab.api.transcriptions")
 
@@ -118,6 +119,53 @@ async def list_transcriptions(
             .order_by(Transcription.id)
         ).all()
         return {"transcriptions": [r.to_dict() for r in rows]}
+
+
+class TranscribeRequest(BaseModel):
+    stem: str = Field(default="guitar", pattern=r"^[a-z]{2,16}$")
+    tuning: str | None = None  # None -> per-stem default; must be a TUNINGS key
+    capo: int = Field(default=0, ge=0, le=12)
+    onset_threshold: float = Field(default=0.5, ge=0.05, le=0.95)
+    frame_threshold: float = Field(default=0.3, ge=0.05, le=0.95)
+    min_note_length_ms: float = Field(default=58.0, ge=10, le=1000)
+
+
+@router.post("/songs/{video_id}/transcribe", status_code=202)
+async def transcribe_song_endpoint(
+    request: Request,
+    body: TranscribeRequest,
+    video_id: str = PathParam(pattern=VIDEO_ID_PATTERN),
+) -> dict:
+    if body.tuning is not None and body.tuning not in TUNINGS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown tuning '{body.tuning}'. Available: {', '.join(sorted(TUNINGS))}",
+        )
+    queue = request.app.state.job_queue
+    with db_session() as db:
+        if db.get(Song, video_id) is None:
+            raise HTTPException(status_code=404, detail="Song not found")
+        stem_row = db.scalar(
+            select(Stem).where(Stem.song_id == video_id, Stem.name == body.stem)
+        )
+        if stem_row is None:
+            raise HTTPException(
+                status_code=409,
+                detail=f"No '{body.stem}' stem for this song — run separation first.",
+            )
+        active = db.scalars(
+            select(Job)
+            .where(
+                Job.song_id == video_id,
+                Job.kind == "transcribe",
+                Job.status.in_(("queued", "running")),
+            )
+            .order_by(Job.created_at.desc())
+        ).first()
+        if active is not None:
+            return {"job_id": active.id, "already_running": True}
+    job_id = queue.enqueue("transcribe", video_id, params=body.model_dump())
+    return {"job_id": job_id, "already_running": False}
 
 
 class TranscriptionPatch(BaseModel):

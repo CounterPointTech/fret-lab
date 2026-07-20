@@ -115,6 +115,9 @@ export function TabViewer({
     settings.player.scrollElement = scroll
     settings.player.scrollOffsetY = -32
     settings.display.scale = 0.95
+    // MusicXML with a 6-line tab-tuned staff would otherwise render tab-only;
+    // ScoreTab always shows notation + tab (Default's behavior for GP files)
+    settings.display.staveProfile = alphaTab.StaveProfile.ScoreTab
     const res = settings.display.resources
     res.mainGlyphColor = color(STAGE_100)
     res.secondaryGlyphColor = color(STAGE_300)
@@ -133,6 +136,13 @@ export function TabViewer({
     })
 
     api.scoreLoaded.on((score) => {
+      // MusicXML with a tuned 6-line staff imports as tab-only — force both
+      // staves so drafts render notation + tab like Guitar Pro files do
+      for (const track of score.tracks) {
+        for (const staff of track.staves) {
+          if (staff.showTablature) staff.showStandardNotation = true
+        }
+      }
       const names = score.tracks.map((t) => t.name)
       setTrackNames(names)
       cbRef.current.onScoreLoaded?.({ title: score.title, trackNames: names, tempo: score.tempo })

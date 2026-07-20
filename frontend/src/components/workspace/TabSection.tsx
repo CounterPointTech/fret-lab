@@ -21,13 +21,15 @@ import { useToast } from '../Toasts'
 interface Props {
   videoId: string
   player: StemPlayerApi
+  /** A transcription created outside this panel (AI draft) — adopt & select it. */
+  newTranscription?: Transcription | null
 }
 
 type TabMode = 'synth' | 'audio'
 
 const SYNTH_SPEEDS = [0.5, 0.7, 0.85, 1]
 
-export function TabSection({ videoId, player }: Props) {
+export function TabSection({ videoId, player, newTranscription }: Props) {
   const toast = useToast()
   const [transcriptions, setTranscriptions] = useState<Transcription[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -60,6 +62,15 @@ export function TabSection({ videoId, player }: Props) {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  // Adopt AI drafts finished by the per-stem transcribe buttons.
+  useEffect(() => {
+    if (!newTranscription) return
+    setTranscriptions((list) =>
+      list.some((t) => t.id === newTranscription.id) ? list : [...list, newTranscription],
+    )
+    setSelectedId(newTranscription.id)
+  }, [newTranscription])
 
   // Adopt the persisted sync model whenever another transcription is selected.
   useEffect(() => {
@@ -168,6 +179,14 @@ export function TabSection({ videoId, player }: Props) {
         <h3 className="font-mono text-xs uppercase tracking-widest text-stage-500">
           Tab &amp; notation
         </h3>
+        {selected?.source === 'generated' && (
+          <span
+            className="rounded-md border border-amp-500/50 bg-amp-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amp-300"
+            title="Auto-transcribed by AI — a draft to correct, not gospel"
+          >
+            AI draft
+          </span>
+        )}
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {transcriptions.length > 0 && (

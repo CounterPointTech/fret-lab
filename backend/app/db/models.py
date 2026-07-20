@@ -123,6 +123,10 @@ class Transcription(Base):
     path: Mapped[str] = mapped_column(Text)
     sync_bpm: Mapped[float | None] = mapped_column(Float)
     sync_offset_s: Mapped[float] = mapped_column(Float, default=0.0)
+    # upload | generated (AI transcription draft)
+    source: Mapped[str] = mapped_column(String(16), default="upload")
+    # JSON of the pipeline params that produced a generated draft (reproducibility)
+    params_json: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     def to_dict(self) -> dict:
@@ -134,6 +138,8 @@ class Transcription(Base):
             "kind": self.kind,
             "sync_bpm": self.sync_bpm,
             "sync_offset_s": self.sync_offset_s,
+            "source": self.source,
+            "params_json": self.params_json,
             "created_at": _iso(self.created_at),
             "file_url": f"/api/media/{self.song_id}/transcriptions/{filename}",
         }

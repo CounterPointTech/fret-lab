@@ -7,6 +7,8 @@ import { alphaTab } from '@coderline/alphatab-vite'
 export default defineConfig({
   plugins: [react(), tailwindcss(), alphaTab()],
   server: {
+    // host.docker.internal lets browser-automation containers reach the dev server
+    allowedHosts: ['host.docker.internal'],
     proxy: {
       '/api': 'http://localhost:8000',
     },
