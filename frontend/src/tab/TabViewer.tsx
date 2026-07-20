@@ -120,6 +120,10 @@ export function TabViewer({
     settings.core.file = fileUrl
     settings.core.logLevel = alphaTab.LogLevel.Warning
     settings.core.includeNoteBounds = true // note-level hit testing for the editor
+    // lazy chunk loading leaves the score unpainted on cold page loads (the
+    // visibility tracking never fires inside our scroll container) — render
+    // everything eagerly; scores are a few thousand px tall at most
+    settings.core.enableLazyLoading = false
     // the vite plugin's font auto-detection fails in dev — pin Bravura explicitly
     settings.core.smuflFontSources = new Map([[alphaTab.FontFileFormat.Woff2, bravuraWoff2Url]])
     settings.player.playerMode =
