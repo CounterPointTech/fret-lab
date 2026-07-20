@@ -39,5 +39,26 @@ Pipeline: yt-dlp → WAV → BS-RoFormer (vocals split) → htdemucs_6s (instrum
 
 1. **Multi-stem time-stretch sync** — ✅ resolved in Phase 3: per-stem signalsmith-stretch nodes driven by identical scheduled time maps hold < 6ms inter-stem spread through 60s playback, seeks, loop wraps, and live rate changes (measured; see `/proto/sync` + `frontend/scripts/run-sync-proto.mjs`). No fallback needed.
 2. **YouTube bot detection** — keep yt-dlp updated; `--cookies-from-browser`; PO-token plugin if needed.
-3. **Transcription accuracy on distorted guitar** — it's a *draft*; the editor (Phase 6) is the product.
+3. **Transcription accuracy on distorted guitar** — it's a *draft*; the editor (Phase 6) is the product. **Update after Phase 5 review: accuracy is a top priority (Daniel), not just editor fodder — see backlog below.**
 4. **htdemucs_6s guitar-stem bleed** — validate on real songs; acceptable for practice use.
+
+## Transcription accuracy backlog (post-Phase-5, priority: high)
+
+Observed on Smoke on the Water guitar draft: extra notes in playback. Sources: Basic
+Pitch overtone false positives (e.g. spurious fret-19 note), organ bleed in the guitar
+stem, and 1/16 chord-merge folding near-simultaneous artifacts into chords. Work items,
+roughly in order of leverage:
+
+1. **Ground-truth eval harness first** — 4–8 bars of known riffs (Smoke intro, Paranoid
+   riff, a bass line) with hand-written correct note lists; score note precision/recall
+   (mir_eval is already installed). Every item below must move these numbers, not vibes.
+2. **Overtone/octave suppression** — drop a detected note when a note 12/19/24 semitones
+   below starts within the same grid step with substantially higher amplitude.
+3. **Amplitude floor** — filter notes whose Basic Pitch amplitude is far below the local
+   median (bleed and ghost notes are usually quiet).
+4. **Per-stem threshold presets** — distorted guitar wants higher onset threshold than
+   clean bass; expose "clean/crunchy/high-gain" presets in the popover.
+5. **Heuristic voice separation (multi-guitar)** — the guitar stem contains *all*
+   guitars mixed; cluster simultaneous notes by register/hand-position into 1–2 voices
+   and emit separate MusicXML tracks. True guitar-vs-guitar source separation is
+   research-grade; this is the pragmatic path. (Raised by Daniel 2026-07-19.)
