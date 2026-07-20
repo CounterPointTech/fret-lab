@@ -66,7 +66,7 @@ export function MetronomeWidget() {
   }
 
   return (
-    <div className="rounded-xl border border-stage-700/60 bg-stage-900/80 p-4">
+    <div className="panel p-4">
       <div className="flex flex-wrap items-center gap-3">
         <span className="font-mono text-xs uppercase tracking-widest text-stage-500">
           Metronome

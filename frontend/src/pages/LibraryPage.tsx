@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import { SearchModal } from '../components/SearchModal'
 import { SongCard } from '../components/SongCard'
@@ -68,43 +67,57 @@ export function LibraryPage() {
       <header className="flex items-end justify-between gap-4 py-10">
         <div>
           <h1 className="font-display text-5xl font-extrabold tracking-tight">
-            Fret <span className="text-amp-400">Lab</span>
+            Your <span className="text-amp-400">library</span>
           </h1>
-          <p className="mt-2 text-stage-300">Your practice library — search, download, shred.</p>
+          <p className="mt-2 text-stage-300">Search, download, shred.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/theory"
-            className="font-mono text-sm text-stage-300 transition hover:text-amp-300"
-          >
-            Theory Lab →
-          </Link>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="group flex items-center gap-2 rounded-xl bg-amp-500 px-5 py-3 font-bold text-stage-950 shadow-lg shadow-amp-500/20 transition hover:bg-amp-400 hover:shadow-amp-400/30"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Add song
-          </button>
-        </div>
+        <button onClick={() => setSearchOpen(true)} className="btn-accent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add song
+        </button>
       </header>
 
       {songs == null ? (
-        <p className="py-20 text-center text-stage-500">Loading library…</p>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="panel overflow-hidden">
+              <div className="skeleton aspect-video rounded-none" />
+              <div className="flex flex-col gap-2.5 p-4">
+                <div className="skeleton h-4 w-3/4" />
+                <div className="skeleton h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : songs.length === 0 ? (
-        <div className="animate-rise mt-16 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-stage-700 py-20 text-center">
-          <span className="text-6xl">🎸</span>
-          <h2 className="text-2xl font-bold text-stage-100">No songs yet</h2>
-          <p className="max-w-md text-stage-300">
-            Search YouTube for a song you want to learn — Fret Lab downloads the audio and gets it ready
-            for stem separation and tabs.
-          </p>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="mt-2 rounded-xl border border-amp-500/50 px-5 py-2.5 font-semibold text-amp-300 transition hover:bg-amp-500/10"
-          >
+        <div className="animate-rise panel mt-10 flex flex-col items-center gap-6 px-8 py-16 text-center">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-amp-500/10 text-4xl shadow-glow-sm">
+            🎸
+          </span>
+          <div>
+            <h2 className="font-display text-3xl font-extrabold text-stage-100">
+              Pick a song to learn
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-stage-300">
+              Fret Lab turns any YouTube song into a practice room — isolated stems, slow-down
+              playback, chords, and AI-drafted tab.
+            </p>
+          </div>
+
+          <ol className="flex flex-col items-start gap-3 text-left sm:flex-row sm:items-center sm:gap-8">
+            {['Search a song', 'Separate the stems', 'Practice & transcribe'].map((step, i) => (
+              <li key={step} className="flex items-center gap-2.5">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-amp-500/40 font-mono text-xs text-amp-300">
+                  {i + 1}
+                </span>
+                <span className="text-sm text-stage-200">{step}</span>
+              </li>
+            ))}
+          </ol>
+
+          <button onClick={() => setSearchOpen(true)} className="btn-accent mt-2">
             Search YouTube
           </button>
         </div>

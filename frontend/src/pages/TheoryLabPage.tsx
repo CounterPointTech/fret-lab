@@ -91,18 +91,15 @@ export function TheoryLabPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-24">
-      <nav className="flex items-center gap-4 py-6 font-mono text-sm">
-        <Link to="/" className="text-stage-300 transition hover:text-amp-300">
-          ← Library
-        </Link>
-        {songId && (
+      {songId && (
+        <nav className="pt-6 font-mono text-sm">
           <Link to={`/songs/${songId}`} className="text-stage-300 transition hover:text-amp-300">
             ← Back to song
           </Link>
-        )}
-      </nav>
+        </nav>
+      )}
 
-      <header className="animate-rise">
+      <header className="animate-rise pt-8">
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Theory Lab</h1>
         <p className="mt-1 text-stage-300">
           The fretboard is movable shapes — pick a key, see the patterns, jam them over real songs.
@@ -110,14 +107,14 @@ export function TheoryLabPage() {
       </header>
 
       <div className="animate-rise mt-8 grid gap-6 lg:grid-cols-[auto_1fr]">
-        <section className="rounded-xl border border-stage-700/60 bg-stage-900/80 p-4">
+        <section className="panel p-4">
           <h2 className="mb-2 font-mono text-xs uppercase tracking-widest text-stage-500">
             Circle of fifths
           </h2>
           <CircleOfFifths tonic={tonic} mode={mode} onSelect={selectKey} />
         </section>
 
-        <section className="flex flex-col gap-4 rounded-xl border border-stage-700/60 bg-stage-900/80 p-4">
+        <section className="flex flex-col gap-4 panel p-4">
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 font-mono text-sm text-stage-300">
               Key
@@ -191,7 +188,7 @@ export function TheoryLabPage() {
         </section>
       </div>
 
-      <section className="animate-rise mt-6 rounded-xl border border-stage-700/60 bg-stage-900/80 p-4">
+      <section className="animate-rise mt-6 panel p-4">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <h2 className="mr-2 font-mono text-xs uppercase tracking-widest text-stage-500">
             Scale explorer — {tonic} {scaleType}
@@ -216,7 +213,7 @@ export function TheoryLabPage() {
         </p>
       </section>
 
-      <section className="animate-rise mt-6 rounded-xl border border-stage-700/60 bg-stage-900/80 p-4">
+      <section className="animate-rise mt-6 panel p-4">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <h2 className="mr-2 font-mono text-xs uppercase tracking-widest text-stage-500">
             Chord explorer

@@ -512,14 +512,12 @@ export function TabSection({ videoId, player, newTranscription }: Props) {
   return (
     <section
       ref={sectionRef}
-      className="mt-6 rounded-xl border border-stage-700/60 bg-stage-900/60 p-4 outline-none"
+      className="panel mt-2 p-4 outline-none"
       tabIndex={editing ? 0 : -1}
       onKeyDown={handleEditorKeys}
     >
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="font-mono text-xs uppercase tracking-widest text-stage-500">
-          Tab &amp; notation
-        </h3>
+        <h3 className="section-label">Tab &amp; notation</h3>
         {selected?.source === 'generated' && (
           <span
             className="rounded-md border border-amp-500/50 bg-amp-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amp-300"
@@ -530,7 +528,7 @@ export function TabSection({ videoId, player, newTranscription }: Props) {
         )}
         {selected?.source === 'edited' && (
           <span
-            className="rounded-md border border-emerald-500/50 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300"
+            className="rounded-md border border-stage-500/60 bg-stage-700/40 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-stage-200"
             title="Corrected by you — saved as alphaTex"
           >
             Edited

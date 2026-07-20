@@ -81,14 +81,27 @@ export function SearchModal({ onPick, onClose }: Props) {
         </form>
 
         <div className="max-h-[55vh] overflow-y-auto">
-          {error && <p className="px-5 py-6 text-sm text-red-400">{error}</p>}
+          {error && <p className="px-5 py-6 text-sm text-rose-300">{error}</p>}
+          {searching && (
+            <div className="flex flex-col gap-3 px-5 py-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="skeleton h-14 w-24 shrink-0" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="skeleton h-3.5 w-2/3" />
+                    <div className="skeleton h-3 w-1/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {!error && results?.length === 0 && (
             <p className="px-5 py-6 text-sm text-stage-300">No results — try another query.</p>
           )}
           {!error && results == null && !searching && (
             <p className="px-5 py-8 text-center text-sm text-stage-500">
-              Press <kbd className="rounded border border-stage-700 px-1.5 font-mono text-xs">Enter</kbd> to
-              search YouTube — pick a result to add it to your library.
+              Press <kbd className="kbd">Enter</kbd> to search YouTube — pick a result to add it
+              to your library.
             </p>
           )}
           {results?.map((r) => (

@@ -64,8 +64,8 @@ export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, 
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border border-stage-700/60 bg-stage-900/70 px-4 py-2.5 shadow-lg shadow-black/20 transition-opacity ${
-        silenced ? 'opacity-60' : ''
+      className={`flex items-center gap-3 px-4 py-2.5 transition-opacity hover:bg-stage-850/60 ${
+        silenced ? 'opacity-50' : ''
       }`}
     >
       <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${visual.dot}`} />
@@ -76,9 +76,10 @@ export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, 
       <button
         onClick={onToggleMute}
         title={`${mix.muted ? 'Unmute' : 'Mute'} ${visual.label}`}
+        aria-pressed={mix.muted}
         className={`h-7 w-7 shrink-0 rounded-md font-mono text-xs font-bold transition ${
           mix.muted
-            ? 'bg-rose-500/90 text-stage-950 shadow-md shadow-rose-500/30'
+            ? 'animate-pop bg-rose-500/90 text-stage-950 shadow-md shadow-rose-500/30'
             : 'bg-stage-700/70 text-stage-300 hover:bg-stage-700 hover:text-stage-100'
         }`}
       >
@@ -87,9 +88,10 @@ export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, 
       <button
         onClick={onToggleSolo}
         title={`${mix.soloed ? 'Unsolo' : 'Solo'} ${visual.label}`}
+        aria-pressed={mix.soloed}
         className={`h-7 w-7 shrink-0 rounded-md font-mono text-xs font-bold transition ${
           mix.soloed
-            ? 'bg-amp-400 text-stage-950 shadow-md shadow-amp-500/40'
+            ? 'animate-pop bg-amp-400 text-stage-950 shadow-glow-sm'
             : 'bg-stage-700/70 text-stage-300 hover:bg-stage-700 hover:text-stage-100'
         }`}
       >
@@ -104,7 +106,8 @@ export function StemLane({ name, mix, peaks, sidelined, onVolume, onToggleMute, 
         value={mix.volume}
         onChange={(e) => onVolume(Number(e.target.value))}
         title={`${visual.label} volume`}
-        className="w-28 shrink-0 accent-amp-500"
+        className="fader w-28 shrink-0"
+        style={{ '--val': `${(mix.volume / 1.2) * 100}%` } as React.CSSProperties}
       />
 
       <canvas ref={canvasRef} className="h-9 min-w-0 flex-1" />

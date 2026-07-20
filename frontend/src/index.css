@@ -1,25 +1,44 @@
 @import "tailwindcss";
 
+/* ————————————————————————————————————————————————————————————————
+   Fret Lab design tokens — "dark studio"
+   One warm near-black ramp (stage), one saturated amber accent (amp),
+   everything else is data color (stem lanes) or semantic (danger).
+   ———————————————————————————————————————————————————————————————— */
 @theme {
   --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --color-stage-950: #0c0a08;
+  --color-stage-925: #100d0a;
   --color-stage-900: #14110d;
+  --color-stage-850: #191510;
   --color-stage-800: #1e1a14;
   --color-stage-700: #2b2519;
+  --color-stage-600: #403927;
   --color-stage-500: #57503f;
+  --color-stage-400: #7d745e;
   --color-stage-300: #a89e88;
+  --color-stage-200: #cfc6b2;
   --color-stage-100: #ece5d8;
 
+  --color-amp-200: #ffe7bd;
   --color-amp-300: #ffd489;
   --color-amp-400: #ffb946;
   --color-amp-500: #f59e0b;
   --color-amp-600: #d97706;
+  --color-amp-700: #b45309;
 
   --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.25s ease-out both;
   --animate-glow-pulse: glow-pulse 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-pop: pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-loop-pulse: loop-pulse 0.5s ease-out both;
+
+  --shadow-glow-sm: 0 0 12px 0 rgb(245 158 11 / 0.25);
+  --shadow-glow: 0 0 24px 2px rgb(245 158 11 / 0.3);
+  --shadow-glow-lg: 0 0 48px 6px rgb(245 158 11 / 0.35);
 }
 
 @keyframes rise {
@@ -52,6 +71,48 @@
   }
 }
 
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* loop region flashes brighter for a beat when playback wraps A→B */
+@keyframes loop-pulse {
+  0% {
+    background-color: rgb(245 158 11 / 0.45);
+  }
+  100% {
+    background-color: rgb(245 158 11 / 0.16);
+  }
+}
+
+/* tiny animated EQ bars for the "playing" indicator */
+@keyframes eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
 body {
   font-family: var(--font-display);
   background-color: var(--color-stage-950);
@@ -65,7 +126,252 @@ body {
   min-height: 100vh;
 }
 
+/* film-grain overlay: keeps large dark surfaces from looking flat */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 ::selection {
   background: var(--color-amp-500);
   color: var(--color-stage-950);
+}
+
+/* visible, on-brand focus for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--color-amp-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* slim on-brand scrollbars (chord timeline, tab pane) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-stage-600) transparent;
+}
+*::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-stage-600);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer components {
+  /* the app's one card surface — use everywhere instead of ad-hoc borders */
+  .panel {
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--color-stage-700) 60%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-stage-850) 92%, transparent),
+      color-mix(in oklab, var(--color-stage-900) 88%, transparent)
+    );
+    box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.5);
+  }
+
+  .btn-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-xl);
+    background: var(--color-amp-500);
+    padding: 0.625rem 1.25rem;
+    font-weight: 700;
+    color: var(--color-stage-950);
+    box-shadow: var(--shadow-glow-sm);
+    transition:
+      background-color 0.15s ease,
+      box-shadow 0.2s ease,
+      transform 0.1s ease;
+  }
+  .btn-accent:hover {
+    background: var(--color-amp-400);
+    box-shadow: var(--shadow-glow);
+  }
+  .btn-accent:active {
+    transform: scale(0.97);
+  }
+  .btn-accent:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    box-shadow: none;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--color-amp-500) 50%, transparent);
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    color: var(--color-amp-300);
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .btn-outline:hover {
+    background: color-mix(in oklab, var(--color-amp-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--color-amp-500) 80%, transparent);
+  }
+  .btn-outline:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .btn-quiet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--color-stage-700) 70%, transparent);
+    padding: 0.375rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-stage-300);
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .btn-quiet:hover {
+    background: var(--color-stage-700);
+    color: var(--color-stage-100);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: calc(infinity * 1px);
+    border: 1px solid color-mix(in oklab, var(--color-amp-500) 40%, transparent);
+    background: color-mix(in oklab, var(--color-amp-500) 10%, transparent);
+    padding: 0.125rem 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-amp-300);
+  }
+
+  .chip-quiet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: calc(infinity * 1px);
+    background: color-mix(in oklab, var(--color-stage-700) 60%, transparent);
+    padding: 0.125rem 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-stage-300);
+  }
+
+  .kbd {
+    display: inline-block;
+    min-width: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-stage-600);
+    border-bottom-width: 2px;
+    background: var(--color-stage-800);
+    padding: 0.125rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--color-stage-200);
+  }
+
+  .progress-track {
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: calc(infinity * 1px);
+    background: var(--color-stage-700);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: calc(infinity * 1px);
+    background: linear-gradient(90deg, var(--color-amp-600), var(--color-amp-400));
+    box-shadow: 0 0 10px 0 rgb(245 158 11 / 0.45);
+    transition: width 0.3s ease;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-stage-500);
+  }
+
+  /* skeleton shimmer block */
+  .skeleton {
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      100deg,
+      var(--color-stage-800) 40%,
+      var(--color-stage-700) 50%,
+      var(--color-stage-800) 60%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  /* mixer fader — set inline style --val: NN% for the filled part */
+  .fader {
+    appearance: none;
+    height: 0.375rem;
+    border-radius: calc(infinity * 1px);
+    background:
+      linear-gradient(
+        90deg,
+        var(--color-amp-500) 0 var(--val, 50%),
+        var(--color-stage-700) var(--val, 50%) 100%
+      );
+    cursor: pointer;
+  }
+  .fader::-webkit-slider-thumb {
+    appearance: none;
+    height: 0.875rem;
+    width: 0.875rem;
+    border-radius: 9999px;
+    background: var(--color-stage-100);
+    border: 2px solid var(--color-amp-500);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
+    transition: transform 0.1s ease;
+  }
+  .fader::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+  .fader::-moz-range-thumb {
+    height: 0.875rem;
+    width: 0.875rem;
+    border-radius: 9999px;
+    background: var(--color-stage-100);
+    border: 2px solid var(--color-amp-500);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
+  }
+  .fader:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* honor OS-level reduced-motion: kill decorative motion, keep opacity cues */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

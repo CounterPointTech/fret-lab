@@ -14,6 +14,8 @@ interface Props {
   loop: { a: number; b: number } | null
   onSeek: (pos: number) => void
   onLoopChange: (a: number, b: number) => void
+  /** Stable wrap subscription from useStemPlayer (survives player reloads). */
+  onLoopWrap: (cb: () => void) => () => void
 }
 
 const REGION_COLOR = 'rgba(245, 158, 11, 0.16)'
@@ -23,7 +25,7 @@ const REGION_COLOR = 'rgba(245, 158, 11, 0.16)'
  * the engine's tick (never wavesurfer playback), Regions plugin for the
  * draggable A-B loop window.
  */
-export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, onLoopChange }: Props) {
+export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, onLoopChange, onLoopWrap }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WaveSurfer | null>(null)
   const regionsRef = useRef<RegionsPlugin | null>(null)
@@ -49,7 +51,7 @@ export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, 
       media,
       peaks: [Float32Array.from(peaks)],
       duration,
-      height: 110,
+      height: 148,
       waveColor: 'rgba(168, 158, 136, 0.4)',
       progressColor: '#f59e0b',
       cursorColor: '#ffd489',
@@ -84,8 +86,18 @@ export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, 
     })
     ws.setTime(player.position)
 
+    // flash the loop region when playback wraps back to A
+    const unsubWrap = onLoopWrap(() => {
+      const el = regions.getRegions()[0]?.element
+      if (!el) return
+      el.classList.remove('animate-loop-pulse')
+      void el.offsetWidth // restart the animation
+      el.classList.add('animate-loop-pulse')
+    })
+
     return () => {
       unsubTick()
+      unsubWrap()
       ws.destroy()
       wsRef.current = null
       regionsRef.current = null
@@ -93,7 +105,7 @@ export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, 
     }
     // The waveform is rebuilt only when the song itself changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaUrl, duration, player])
+  }, [mediaUrl, duration, player, onLoopWrap])
 
   // Reflect external loop changes (L key, trainer, clear) into the region.
   useEffect(() => {
@@ -117,11 +129,5 @@ export function MainWaveform({ peaks, duration, mediaUrl, player, loop, onSeek, 
     syncingRef.current = false
   }, [loop])
 
-  return (
-    <div
-      ref={containerRef}
-      data-testid="main-waveform"
-      className="rounded-xl border border-stage-700/60 bg-stage-900/70 px-3 py-2 shadow-lg shadow-black/30"
-    />
-  )
+  return <div ref={containerRef} data-testid="main-waveform" className="px-4 py-3" />
 }

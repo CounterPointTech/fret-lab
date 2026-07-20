@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
@@ -150,6 +151,37 @@ class Transcription(Base):
             "meta_json": self.meta_json,
             "created_at": _iso(self.created_at),
             "file_url": f"/api/media/{self.song_id}/transcriptions/{filename}",
+        }
+
+
+class PracticeSession(Base):
+    """One practice sitting on a song: total play time, top playback rate
+    reached, and the loop sections (A-B regions) drilled during the session.
+
+    `loops_json` is a JSON array of {a, b, max_rate, plays} entries — loop
+    bounds in seconds plus the top speed reached while looping that section.
+    """
+
+    __tablename__ = "practice_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    song_id: Mapped[str] = mapped_column(ForeignKey("songs.video_id", ondelete="CASCADE"))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    play_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    # max playback speed reached this session (0.5-1.0 scale in the player)
+    max_rate: Mapped[float] = mapped_column(Float, default=1.0)
+    loops_json: Mapped[str | None] = mapped_column(Text)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "song_id": self.song_id,
+            "started_at": _iso(self.started_at),
+            "ended_at": _iso(self.ended_at),
+            "play_seconds": self.play_seconds,
+            "max_rate": self.max_rate,
+            "loops": json.loads(self.loops_json) if self.loops_json else [],
         }
 
 

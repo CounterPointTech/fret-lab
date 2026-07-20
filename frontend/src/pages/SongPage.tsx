@@ -76,23 +76,7 @@ export function SongPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-24">
-      <nav className="flex items-center justify-between py-6 font-mono text-sm">
-        <Link to="/" className="text-stage-300 transition hover:text-amp-300">
-          ← Library
-        </Link>
-        <Link
-          to={
-            song.key_name
-              ? `/theory?key=${encodeURIComponent(song.key_name)}&song=${song.video_id}`
-              : '/theory'
-          }
-          className="text-stage-300 transition hover:text-amp-300"
-        >
-          Theory Lab →
-        </Link>
-      </nav>
-
-      <header className="animate-rise flex items-center gap-5">
+      <header className="animate-rise flex items-center gap-5 pt-8">
         {song.thumbnail_url && (
           <img
             src={song.thumbnail_url}
@@ -104,48 +88,43 @@ export function SongPage() {
           <h1 className="font-display text-3xl font-extrabold leading-tight tracking-tight text-stage-100">
             {song.title}
           </h1>
-          <p className="mt-1 text-stage-300">
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-stage-300">
             {song.channel ?? 'Unknown channel'}
-            <span className="mx-2 text-stage-500">·</span>
+            <span className="text-stage-500">·</span>
             <span className="font-mono text-sm">{formatDuration(song.duration_s)}</span>
             {song.key_name && (
-              <>
-                <span className="mx-2 text-stage-500">·</span>
-                <span className="rounded-full border border-amp-500/40 bg-amp-500/10 px-2.5 py-0.5 font-mono text-xs text-amp-300">
-                  {song.key_name}
-                </span>
-              </>
+              <Link
+                to={`/theory?key=${encodeURIComponent(song.key_name)}&song=${song.video_id}`}
+                title="Open in Theory Lab"
+                className="chip transition hover:bg-amp-500/20"
+              >
+                {song.key_name}
+              </Link>
             )}
           </p>
         </div>
       </header>
 
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-stage-500">Practice</h2>
+        <h2 className="section-label">Practice</h2>
 
         {separating ? (
-          <div className="animate-rise mt-4 rounded-xl border border-stage-700/60 bg-stage-900/80 p-6">
+          <div className="animate-rise panel mt-4 p-6">
             <p className="animate-glow-pulse font-mono text-sm uppercase tracking-widest text-amp-300">
               {stageLabel} {Math.round(progress * 100)}%
             </p>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-stage-700">
-              <div
-                className="h-full rounded-full bg-amp-400 transition-[width] duration-300"
-                style={{ width: `${Math.max(progress * 100, 2)}%` }}
-              />
+            <div className="progress-track mt-3">
+              <div className="progress-fill" style={{ width: `${Math.max(progress * 100, 2)}%` }} />
             </div>
           </div>
         ) : stems.length > 0 ? (
           <PracticeWorkspace videoId={song.video_id} stems={stems} />
         ) : song.status === 'ready' ? (
-          <div className="animate-rise mt-4 flex flex-col items-start gap-3 rounded-xl border border-dashed border-stage-700 p-6">
+          <div className="animate-rise panel mt-4 flex flex-col items-start gap-3 p-6">
             <p className="text-stage-300">
               No stems yet — separate this song into vocals, drums, bass, guitar, piano and other.
             </p>
-            <button
-              onClick={handleSeparate}
-              className="rounded-xl bg-amp-500 px-5 py-2.5 font-bold text-stage-950 shadow-lg shadow-amp-500/20 transition hover:bg-amp-400"
-            >
+            <button onClick={handleSeparate} className="btn-accent">
               Separate stems
             </button>
           </div>

@@ -101,7 +101,7 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
 
   if (missing) {
     return (
-      <div className="flex items-center gap-4 rounded-xl border border-dashed border-stage-700 px-4 py-3">
+      <div className="flex items-center gap-4 border-b border-stage-800 px-5 py-3">
         <p className="text-sm text-stage-300">
           No chord analysis yet — detect the chord progression and key of this song.
         </p>
@@ -110,10 +110,7 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
             Analyzing…
           </span>
         ) : (
-          <button
-            onClick={startAnalysis}
-            className="rounded-lg border border-amp-500/50 px-3 py-1.5 font-mono text-sm text-amp-300 transition hover:bg-amp-500/10"
-          >
+          <button onClick={startAnalysis} className="btn-outline px-3 py-1.5 font-mono text-sm">
             Analyze chords
           </button>
         )}
@@ -128,14 +125,14 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
     displayChordLabel(transposeChordLabel(label, pitch), preferFlats)
 
   return (
-    <div data-testid="chord-timeline" className="rounded-xl border border-stage-700/60 bg-stage-900/80 p-3">
+    <div data-testid="chord-timeline" className="border-b border-stage-800 px-4 pb-1 pt-3">
       <div className="mb-2 flex flex-wrap items-center gap-3 px-1">
-        <span className="font-mono text-xs uppercase tracking-widest text-stage-500">Chords</span>
+        <span className="section-label">Chords</span>
         {payload.key && (
           <Link
             to={`/theory?key=${encodeURIComponent(payload.key.name)}&song=${videoId}`}
             title="Open in Theory Lab"
-            className="rounded-full border border-amp-500/40 bg-amp-500/10 px-3 py-0.5 font-mono text-xs text-amp-300 transition hover:bg-amp-500/20"
+            className="chip transition hover:bg-amp-500/20"
           >
             key: {payload.key.name}
           </Link>
@@ -143,12 +140,7 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
         {payload.bpm != null && (
           <span className="font-mono text-xs text-stage-500">≈{Math.round(payload.bpm)} bpm</span>
         )}
-        {pitch !== 0 && (
-          <span className="rounded-full bg-stage-700/60 px-2.5 py-0.5 font-mono text-xs text-stage-300">
-            transposed {pitch > 0 ? '+' : ''}
-            {pitch} st
-          </span>
-        )}
+        {pitch !== 0 && <span className="chip-quiet">transposed {pitch > 0 ? '+' : ''}{pitch} st</span>}
         <span
           data-testid="current-chord"
           className="ml-auto min-w-16 text-right font-display text-xl font-extrabold text-amp-300"
@@ -157,8 +149,8 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
         </span>
       </div>
 
-      <div ref={scrollRef} className="overflow-x-auto pb-1">
-        <div className="flex h-11" style={{ width: payload.duration * PX_PER_SECOND }}>
+      <div ref={scrollRef} className="overflow-x-auto pb-1.5">
+        <div className="flex h-10 overflow-hidden rounded-lg" style={{ width: payload.duration * PX_PER_SECOND }}>
           {payload.chords.map((span, i) => {
             const isCurrent = i === currentIdx
             const silent = span.label === 'N'
@@ -171,7 +163,7 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
                 style={{ width: (span.end - span.start) * PX_PER_SECOND }}
                 className={`shrink-0 truncate border-r border-stage-950/80 font-mono text-sm transition-colors ${
                   isCurrent
-                    ? 'bg-amp-500 font-bold text-stage-950'
+                    ? 'bg-amp-500 font-bold text-stage-950 shadow-glow-sm'
                     : silent
                       ? 'bg-stage-950/40 text-stage-700'
                       : 'bg-stage-800/90 text-stage-300 hover:bg-stage-700'

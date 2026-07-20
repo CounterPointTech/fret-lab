@@ -167,6 +167,51 @@ export function deleteTranscription(id: number): Promise<void> {
   return request(`/api/transcriptions/${id}`, { method: 'DELETE' })
 }
 
+export interface PracticeLoop {
+  a: number
+  b: number
+  max_rate: number
+  plays: number
+}
+
+export interface PracticeSession {
+  id: number
+  song_id: string
+  started_at: string | null
+  ended_at: string | null
+  play_seconds: number
+  max_rate: number
+  loops: PracticeLoop[] | null
+}
+
+export interface PracticeSummary {
+  total_seconds: number
+  session_count: number
+  week_seconds: number
+}
+
+export function logPracticeSession(
+  videoId: string,
+  session: {
+    started_at?: string
+    play_seconds: number
+    max_rate: number
+    loops: PracticeLoop[]
+  },
+): Promise<{ session: PracticeSession }> {
+  return request(`/api/songs/${videoId}/practice-sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(session),
+  })
+}
+
+export function listPracticeSessions(
+  videoId: string,
+): Promise<{ sessions: PracticeSession[]; summary: PracticeSummary }> {
+  return request(`/api/songs/${videoId}/practice-sessions`)
+}
+
 export function formatDuration(s: number | null): string {
   if (s == null) return '–:––'
   const m = Math.floor(s / 60)

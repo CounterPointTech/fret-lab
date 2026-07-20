@@ -121,21 +121,13 @@ export function JamPanel({ api, chords }: Props) {
   return (
     <div
       data-testid="jam-panel"
-      className={`rounded-xl border p-4 transition-colors ${
-        active ? 'border-amp-500/50 bg-stage-900' : 'border-stage-700/60 bg-stage-900/80'
-      }`}
+      className={`panel p-4 transition-all ${active ? 'border-amp-500/50 shadow-glow-sm' : ''}`}
     >
       <div className="flex flex-wrap items-center gap-3">
-        <span className="font-mono text-xs uppercase tracking-widest text-stage-500">
-          Jam Mode
-        </span>
+        <span className="section-label">Jam Mode</span>
         <button
           onClick={active ? exitJam : enterJam}
-          className={`rounded-lg px-4 py-1.5 font-bold transition ${
-            active
-              ? 'bg-amp-500 text-stage-950 shadow-lg shadow-amp-500/20'
-              : 'border border-amp-500/50 text-amp-300 hover:bg-amp-500/10'
-          }`}
+          className={active ? 'btn-accent px-4 py-1.5' : 'btn-outline px-4 py-1.5'}
         >
           {active ? '■ Exit jam' : '▶ Jam over backing track'}
         </button>

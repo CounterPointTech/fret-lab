@@ -32,10 +32,11 @@ export function SongCard({ song, index, onJobFinished, onDelete, onSeparate }: P
   const progress = jobEvent?.progress ?? 0
   const stage = jobEvent?.stage ? (STAGE_LABELS[jobEvent.stage] ?? jobEvent.stage) : 'queued'
   const failed = song.status === 'error'
+  const practicable = song.status === 'ready' && song.stem_count >= 6
 
-  return (
+  const card = (
     <article
-      className="group animate-rise relative overflow-hidden rounded-xl border border-stage-700/60 bg-stage-900/80 shadow-lg shadow-black/40 transition-transform duration-300 hover:-translate-y-1 hover:border-amp-500/50 hover:shadow-amp-500/10"
+      className="group animate-rise panel relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-amp-500/40 hover:shadow-glow-sm"
       style={{ animationDelay: `${Math.min(index * 60, 400)}ms` }}
     >
       <div className="relative aspect-video overflow-hidden bg-stage-800">
@@ -51,22 +52,31 @@ export function SongCard({ song, index, onJobFinished, onDelete, onSeparate }: P
         ) : (
           <div className="flex h-full items-center justify-center text-4xl text-stage-500">♪</div>
         )}
+        {/* settle the thumbnail into the card */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stage-925/90 via-transparent to-stage-950/30" />
+
+        {practicable && !inProgress && (
+          <div className="absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-amp-500 text-stage-950 shadow-glow">
+              <svg viewBox="0 0 16 16" className="ml-0.5 h-6 w-6 fill-current">
+                <path d="M4 2.5v11a1 1 0 0 0 1.52.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 4 2.5z" />
+              </svg>
+            </span>
+          </div>
+        )}
 
         {inProgress && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5">
             <span className="animate-glow-pulse font-mono text-xs uppercase tracking-widest text-amp-300">
               {stage} {Math.round(progress * 100)}%
             </span>
-            <div className="h-1 w-2/3 overflow-hidden rounded-full bg-stage-700">
-              <div
-                className="h-full rounded-full bg-amp-400 transition-[width] duration-200"
-                style={{ width: `${Math.max(progress * 100, 2)}%` }}
-              />
+            <div className="progress-track w-2/3">
+              <div className="progress-fill" style={{ width: `${Math.max(progress * 100, 2)}%` }} />
             </div>
           </div>
         )}
 
-        <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[11px] text-stage-100">
+        <span className="absolute bottom-2 right-2 rounded-md bg-stage-950/80 px-1.5 py-0.5 font-mono text-[11px] text-stage-200 backdrop-blur-sm">
           {formatDuration(song.duration_s)}
         </span>
 
@@ -74,64 +84,71 @@ export function SongCard({ song, index, onJobFinished, onDelete, onSeparate }: P
       </div>
 
       <div className="flex items-start justify-between gap-2 p-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="truncate font-semibold leading-tight text-stage-100" title={song.title}>
-            {song.status === 'ready' ? (
-              <Link to={`/songs/${song.video_id}`} className="transition hover:text-amp-300">
-                {song.title}
-              </Link>
-            ) : (
-              song.title
-            )}
+            {song.title}
           </h3>
-          <p className="mt-1 truncate text-sm text-stage-300">{song.channel ?? 'Unknown channel'}</p>
+          <p className="mt-1 truncate text-sm text-stage-400">{song.channel ?? 'Unknown channel'}</p>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 empty:hidden">
+            {song.key_name && <span className="chip">{song.key_name}</span>}
+            {song.bpm != null && <span className="chip-quiet">{Math.round(song.bpm)} bpm</span>}
+            {practicable && (
+              <span className="chip-quiet" title="6 separated stems ready">
+                <StemIcon /> 6 stems
+              </span>
+            )}
+          </div>
+
           {failed && song.last_error && (
-            <p className="mt-2 line-clamp-3 text-xs text-red-400/90" title={song.last_error}>
+            <p className="mt-2 line-clamp-3 text-xs text-rose-400/90" title={song.last_error}>
               {song.last_error}
             </p>
           )}
-          {song.status === 'ready' && !inProgress && (
-            <div className="mt-3">
-              {song.stem_count >= 6 ? (
-                <Link
-                  to={`/songs/${song.video_id}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
-                >
-                  <StemIcon />
-                  Open stems
-                </Link>
-              ) : (
-                <button
-                  onClick={() => onSeparate(song.video_id)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amp-500/40 bg-amp-500/10 px-3 py-1.5 text-xs font-semibold text-amp-300 transition hover:bg-amp-500/20"
-                >
-                  <StemIcon />
-                  Separate stems
-                </button>
-              )}
-            </div>
+
+          {song.status === 'ready' && !inProgress && !practicable && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                onSeparate(song.video_id)
+              }}
+              className="btn-outline mt-3 px-3 py-1.5 text-xs"
+            >
+              <StemIcon />
+              Separate stems
+            </button>
           )}
         </div>
+
         {confirming ? (
-          <div className="flex shrink-0 gap-1">
+          <div className="z-10 flex shrink-0 gap-1">
             <button
-              onClick={() => onDelete(song.video_id)}
-              className="rounded bg-red-600/90 px-2 py-1 text-xs font-semibold text-white hover:bg-red-500"
+              onClick={(e) => {
+                e.preventDefault()
+                onDelete(song.video_id)
+              }}
+              className="rounded-md bg-rose-600/90 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500"
             >
               Delete
             </button>
             <button
-              onClick={() => setConfirming(false)}
-              className="rounded bg-stage-700 px-2 py-1 text-xs text-stage-100 hover:bg-stage-500"
+              onClick={(e) => {
+                e.preventDefault()
+                setConfirming(false)
+              }}
+              className="btn-quiet px-2 py-1"
             >
               Keep
             </button>
           </div>
         ) : (
           <button
-            onClick={() => setConfirming(true)}
+            onClick={(e) => {
+              e.preventDefault()
+              setConfirming(true)
+            }}
             aria-label={`Remove ${song.title}`}
-            className="shrink-0 rounded p-1 text-stage-500 opacity-0 transition group-hover:opacity-100 hover:text-red-400 focus:opacity-100"
+            className="z-10 shrink-0 rounded-md p-1 text-stage-500 opacity-0 transition group-hover:opacity-100 hover:text-rose-400 focus-visible:opacity-100"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
@@ -140,6 +157,15 @@ export function SongCard({ song, index, onJobFinished, onDelete, onSeparate }: P
         )}
       </div>
     </article>
+  )
+
+  // The whole card opens the song when it's ready to practice.
+  return practicable && !confirming ? (
+    <Link to={`/songs/${song.video_id}`} className="block rounded-2xl">
+      {card}
+    </Link>
+  ) : (
+    card
   )
 }
 
@@ -153,15 +179,22 @@ function StemIcon() {
 
 function StatusBadge({ song, inProgress }: { song: Song; inProgress: boolean }) {
   if (inProgress) return null
-  const styles: Record<Song['status'], string> = {
-    ready: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-    error: 'bg-red-500/15 text-red-300 border-red-500/30',
-    queued: 'bg-stage-700/60 text-stage-300 border-stage-500/40',
-    downloading: 'bg-amp-500/15 text-amp-300 border-amp-500/30',
+  if (song.status === 'ready') {
+    return (
+      <span className="absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-stage-950/70 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-stage-200 backdrop-blur-sm">
+        <span className="h-1.5 w-1.5 rounded-full bg-amp-400 shadow-glow-sm" />
+        ready
+      </span>
+    )
+  }
+  const styles: Record<string, string> = {
+    error: 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
+    queued: 'bg-stage-950/70 text-stage-300',
+    downloading: 'bg-amp-500/15 text-amp-300 border border-amp-500/30',
   }
   return (
     <span
-      className={`absolute left-2 top-2 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider backdrop-blur-sm ${styles[song.status]}`}
+      className={`absolute left-2 top-2 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider backdrop-blur-sm ${styles[song.status] ?? styles.queued}`}
     >
       {song.status}
     </span>

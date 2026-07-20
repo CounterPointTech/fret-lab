@@ -28,6 +28,9 @@ export function useStemPlayer(sources: StemSource[] | null) {
   const [pitch, setPitchState] = useState(0)
   const [loop, setLoopState] = useState<{ a: number; b: number } | null>(null)
   const [mix, setMix] = useState<Record<string, StemMixState>>({})
+  // Wrap listeners registered against the hook (stable across player
+  // instances) — the load effect wires the live player into this set.
+  const wrapCbsRef = useRef(new Set<() => void>())
 
   useEffect(() => {
     if (!sources || sources.length === 0) return
@@ -43,7 +46,11 @@ export function useStemPlayer(sources: StemSource[] | null) {
       })
       .then(() => {
         if (cancelled) return
-        if (import.meta.env.DEV) void player.enableDriftMonitor()
+        if (import.meta.env.DEV) {
+          void player.enableDriftMonitor()
+          // dev/debug handle for driven-browser scripts
+          ;(window as unknown as { __stemPlayer?: StemPlayer }).__stemPlayer = player
+        }
         setDuration(player.duration)
         const initialMix: Record<string, StemMixState> = {}
         for (const name of player.stemNames) {
@@ -68,10 +75,14 @@ export function useStemPlayer(sources: StemSource[] | null) {
         setPosition(pos)
       }
     })
+    const unsubWrap = player.onLoopWrap(() => {
+      for (const cb of wrapCbsRef.current) cb()
+    })
 
     return () => {
       cancelled = true
       unsubTick()
+      unsubWrap()
       player.dispose()
       playerRef.current = null
       setStatus('idle')
@@ -153,6 +164,14 @@ export function useStemPlayer(sources: StemSource[] | null) {
     })
   }, [])
 
+  /** Subscribe to loop wraps on whichever player instance is live. */
+  const onLoopWrap = useCallback((cb: () => void) => {
+    wrapCbsRef.current.add(cb)
+    return () => {
+      wrapCbsRef.current.delete(cb)
+    }
+  }, [])
+
   const toggleSolo = useCallback((name: string) => {
     setMix((m) => {
       const soloed = !m[name].soloed
@@ -186,6 +205,7 @@ export function useStemPlayer(sources: StemSource[] | null) {
     setVolume,
     toggleMute,
     toggleSolo,
+    onLoopWrap,
   }
 }
 

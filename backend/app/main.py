@@ -1,14 +1,17 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from app.api import jobs as jobs_api
 from app.api import media as media_api
+from app.api import practice as practice_api
 from app.api import search as search_api
 from app.api import songs as songs_api
 from app.api import transcriptions as transcriptions_api
 from app.db.session import init_db
+from app.errors import FretLabError
 from app.jobs.queue import JobQueue
 from app.pipeline.chords import analyze_song
 from app.pipeline.separate import separate_song
@@ -48,6 +51,29 @@ app.include_router(songs_api.router)
 app.include_router(jobs_api.router)
 app.include_router(media_api.router)
 app.include_router(transcriptions_api.router)
+app.include_router(practice_api.router)
+
+
+# Both handlers keep the {"detail": ...} shape the frontend's api.ts parses;
+# "code" is extra machine-readable context. HTTPException behavior is untouched.
+@app.exception_handler(FretLabError)
+async def fretlab_error_handler(request: Request, exc: FretLabError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.http_status,
+        content={"detail": exc.message, "code": exc.code},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    # Never silent: full traceback to the fretlab logger before responding.
+    logger.error(
+        "Unhandled error on %s %s", request.method, request.url.path, exc_info=exc
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "code": "internal"},
+    )
 
 
 @app.get("/api/health")
