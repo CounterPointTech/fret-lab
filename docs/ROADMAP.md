@@ -17,6 +17,7 @@ One phase per session. Each phase has a self-contained goal doc in `docs/goals/`
 | 6. Correction editor | [phase-6-editor.md](goals/phase-6-editor.md) | ✅ 2026-07-20 |
 | 7. Theory Lab & Jam Mode | [phase-7-theory-lab.md](goals/phase-7-theory-lab.md) | ✅ 2026-07-20 |
 | 8. Beauty & polish pass | [phase-8-polish.md](goals/phase-8-polish.md) | ✅ 2026-07-20 |
+| 9. "Learn" curriculum & nav restructure | [phase-9-learn.md](goals/phase-9-learn.md) | ✅ 2026-07-20 |
 
 ## Product vision
 

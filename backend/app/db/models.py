@@ -185,4 +185,30 @@ class PracticeSession(Base):
         }
 
 
+class LessonProgress(Base):
+    """Completion record for one Learn-curriculum lesson.
+
+    `lesson_id` is a frontend-owned kebab-case slug (the curriculum lives in
+    the frontend); one row per lesson — re-completing a lesson refreshes
+    `completed_at` and overwrites the quiz score.
+    """
+
+    __tablename__ = "lesson_progress"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    lesson_id: Mapped[str] = mapped_column(String(80), unique=True)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    quiz_correct: Mapped[int | None] = mapped_column(Integer)
+    quiz_total: Mapped[int | None] = mapped_column(Integer)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "lesson_id": self.lesson_id,
+            "completed_at": _iso(self.completed_at),
+            "quiz_correct": self.quiz_correct,
+            "quiz_total": self.quiz_total,
+        }
+
+
 TERMINAL_JOB_STATUSES = frozenset({"done", "error", "cancelled"})

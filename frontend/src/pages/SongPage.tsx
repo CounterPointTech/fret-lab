@@ -94,8 +94,8 @@ export function SongPage() {
             <span className="font-mono text-sm">{formatDuration(song.duration_s)}</span>
             {song.key_name && (
               <Link
-                to={`/theory?key=${encodeURIComponent(song.key_name)}&song=${song.video_id}`}
-                title="Open in Theory Lab"
+                to={`/learn/tools?key=${encodeURIComponent(song.key_name)}&song=${song.video_id}`}
+                title="Open in Theory Tools"
                 className="chip transition hover:bg-amp-500/20"
               >
                 {song.key_name}

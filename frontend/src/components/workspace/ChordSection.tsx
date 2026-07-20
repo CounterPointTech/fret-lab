@@ -130,8 +130,8 @@ export function ChordSection({ videoId, api, onLoaded }: Props) {
         <span className="section-label">Chords</span>
         {payload.key && (
           <Link
-            to={`/theory?key=${encodeURIComponent(payload.key.name)}&song=${videoId}`}
-            title="Open in Theory Lab"
+            to={`/learn/tools?key=${encodeURIComponent(payload.key.name)}&song=${videoId}`}
+            title="Open in Theory Tools"
             className="chip transition hover:bg-amp-500/20"
           >
             key: {payload.key.name}

@@ -14,11 +14,11 @@ import {
  * Workspace). Timing comes from the Web Audio lookahead scheduler in
  * src/theory/metronome.ts — never from UI timers.
  */
-export function MetronomeWidget() {
+export function MetronomeWidget({ initialBpm }: { initialBpm?: number } = {}) {
   const metRef = useRef<Metronome | null>(null)
   const tapsRef = useRef<number[]>([])
   const [running, setRunning] = useState(false)
-  const [bpm, setBpm] = useState(120)
+  const [bpm, setBpm] = useState(() => clampBpm(initialBpm ?? 120))
   const [patternIdx, setPatternIdx] = useState(0)
   const [beat, setBeat] = useState<number | null>(null)
 

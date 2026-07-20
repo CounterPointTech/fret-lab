@@ -91,16 +91,19 @@ export function TheoryLabPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-24">
-      {songId && (
-        <nav className="pt-6 font-mono text-sm">
+      <nav className="flex items-center gap-4 pt-6 font-mono text-sm">
+        <Link to="/learn" className="text-stage-300 transition hover:text-amp-300">
+          ← Learn
+        </Link>
+        {songId && (
           <Link to={`/songs/${songId}`} className="text-stage-300 transition hover:text-amp-300">
             ← Back to song
           </Link>
-        </nav>
-      )}
+        )}
+      </nav>
 
-      <header className="animate-rise pt-8">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Theory Lab</h1>
+      <header className="animate-rise pt-6">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Theory Tools</h1>
         <p className="mt-1 text-stage-300">
           The fretboard is movable shapes — pick a key, see the patterns, jam them over real songs.
         </p>

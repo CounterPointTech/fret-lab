@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.api import jobs as jobs_api
+from app.api import learn as learn_api
 from app.api import media as media_api
 from app.api import practice as practice_api
 from app.api import search as search_api
@@ -52,6 +53,7 @@ app.include_router(jobs_api.router)
 app.include_router(media_api.router)
 app.include_router(transcriptions_api.router)
 app.include_router(practice_api.router)
+app.include_router(learn_api.router)
 
 
 # Both handlers keep the {"detail": ...} shape the frontend's api.ts parses;

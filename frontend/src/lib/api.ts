@@ -212,6 +212,33 @@ export function listPracticeSessions(
   return request(`/api/songs/${videoId}/practice-sessions`)
 }
 
+export interface LessonProgress {
+  id: number
+  lesson_id: string
+  completed_at: string | null
+  quiz_correct: number | null
+  quiz_total: number | null
+}
+
+export function listLearnProgress(): Promise<{ progress: LessonProgress[] }> {
+  return request('/api/learn/progress')
+}
+
+export function putLessonProgress(
+  lessonId: string,
+  quiz?: { quiz_correct: number; quiz_total: number },
+): Promise<{ progress: LessonProgress }> {
+  return request(`/api/learn/progress/${lessonId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(quiz ?? {}),
+  })
+}
+
+export function deleteLessonProgress(lessonId: string): Promise<void> {
+  return request(`/api/learn/progress/${lessonId}`, { method: 'DELETE' })
+}
+
 export function formatDuration(s: number | null): string {
   if (s == null) return '–:––'
   const m = Math.floor(s / 60)

@@ -45,8 +45,8 @@ export function AppShell() {
           >
             Fret <span className="text-amp-400">Lab</span>
           </Link>
-          <NavLink to="/" label="Library" />
-          <NavLink to="/theory" label="Theory Lab" />
+          <NavLink to="/learn" label="Learn" />
+          <NavLink to="/" label="Songs" />
           <button
             onClick={() => setShortcutsOpen(true)}
             title="Keyboard shortcuts (?)"
