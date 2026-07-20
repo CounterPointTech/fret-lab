@@ -13,10 +13,14 @@ export interface Song {
   duration_s: number | null
   thumbnail_url: string | null
   status: 'queued' | 'downloading' | 'ready' | 'error'
+  key_name: string | null
+  bpm: number | null
   created_at: string | null
   active_job_id: string | null
   last_error: string | null
   stem_count: number
+  /** present on the song-detail endpoint once the analyze job has run */
+  chords_url?: string | null
 }
 
 export interface Stem {
@@ -80,6 +84,12 @@ export function separateSong(
   videoId: string,
 ): Promise<{ job_id: string; already_running: boolean }> {
   return request(`/api/songs/${videoId}/separate`, { method: 'POST' })
+}
+
+export function analyzeSong(
+  videoId: string,
+): Promise<{ job_id: string; already_running: boolean }> {
+  return request(`/api/songs/${videoId}/analyze`, { method: 'POST' })
 }
 
 export interface Transcription {

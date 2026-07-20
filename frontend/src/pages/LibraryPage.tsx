@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { SearchModal } from '../components/SearchModal'
 import { SongCard } from '../components/SongCard'
@@ -71,15 +72,23 @@ export function LibraryPage() {
           </h1>
           <p className="mt-2 text-stage-300">Your practice library — search, download, shred.</p>
         </div>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="group flex items-center gap-2 rounded-xl bg-amp-500 px-5 py-3 font-bold text-stage-950 shadow-lg shadow-amp-500/20 transition hover:bg-amp-400 hover:shadow-amp-400/30"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Add song
-        </button>
+        <div className="flex items-center gap-4">
+          <Link
+            to="/theory"
+            className="font-mono text-sm text-stage-300 transition hover:text-amp-300"
+          >
+            Theory Lab →
+          </Link>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="group flex items-center gap-2 rounded-xl bg-amp-500 px-5 py-3 font-bold text-stage-950 shadow-lg shadow-amp-500/20 transition hover:bg-amp-400 hover:shadow-amp-400/30"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Add song
+          </button>
+        </div>
       </header>
 
       {songs == null ? (

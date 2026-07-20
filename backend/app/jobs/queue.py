@@ -56,6 +56,10 @@ class JobContext:
         """Progress from worker threads (e.g. yt-dlp hooks)."""
         self._loop.call_soon_threadsafe(self.report, stage, progress)
 
+    def enqueue_followup(self, kind: str, params: dict | None = None) -> str:
+        """Chain another job for the same song (event-loop thread only)."""
+        return self._queue.enqueue(kind, self.song_id, params)
+
     @property
     def cancelled(self) -> bool:
         return self._cancel_event.is_set()

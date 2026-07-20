@@ -26,10 +26,15 @@ class StubCtx:
         self.job_id = "job_test"
         self.song_id = song_id
         self.reports: list[tuple[str, float]] = []
+        self.followups: list[str] = []
         self.cancelled = False
 
     def report(self, stage: str, progress: float) -> None:
         self.reports.append((stage, progress))
+
+    def enqueue_followup(self, kind: str, params: dict | None = None) -> str:
+        self.followups.append(kind)
+        return f"job_{kind}"
 
     def report_threadsafe(self, stage: str, progress: float) -> None:
         self.reports.append((stage, progress))
@@ -76,6 +81,7 @@ def test_cache_hit_completes_instantly_and_upserts_rows(tmp_env):
     elapsed = time.perf_counter() - t0
 
     assert ctx.reports == [("cached", 1.0)]
+    assert ctx.followups == ["analyze"]  # chord analysis chains even on cache hit
     assert elapsed < 2.0  # no models, no ffmpeg
     with db_session() as db:
         stems = db.query(Stem).filter_by(song_id=VID).all()

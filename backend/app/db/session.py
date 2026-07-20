@@ -35,6 +35,8 @@ _COLUMN_MIGRATIONS = (
     ("transcriptions", "source", "VARCHAR(16) NOT NULL DEFAULT 'upload'"),
     ("transcriptions", "params_json", "TEXT"),
     ("transcriptions", "meta_json", "TEXT"),
+    ("songs", "key_name", "VARCHAR(32)"),
+    ("songs", "bpm", "FLOAT"),
 )
 
 

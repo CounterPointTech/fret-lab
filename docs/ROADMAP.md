@@ -15,7 +15,7 @@ One phase per session. Each phase has a self-contained goal doc in `docs/goals/`
 | 4. Tab & sheet music rendering | [phase-4-tab-rendering.md](goals/phase-4-tab-rendering.md) | ✅ 2026-07-19 |
 | 5. AI transcription draft | [phase-5-transcription.md](goals/phase-5-transcription.md) | ✅ 2026-07-19 |
 | 6. Correction editor | [phase-6-editor.md](goals/phase-6-editor.md) | ✅ 2026-07-20 |
-| 7. Theory Lab & Jam Mode | [phase-7-theory-lab.md](goals/phase-7-theory-lab.md) | ☐ |
+| 7. Theory Lab & Jam Mode | [phase-7-theory-lab.md](goals/phase-7-theory-lab.md) | ✅ 2026-07-20 |
 | 8. Beauty & polish pass | [phase-8-polish.md](goals/phase-8-polish.md) | ☐ |
 
 ## Product vision

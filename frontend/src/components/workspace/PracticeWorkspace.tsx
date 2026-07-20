@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { Stem, Transcription } from '../../lib/api'
 import { useStemPlayer } from '../../hooks/useStemPlayer'
+import type { ChordsPayload } from '../../theory/chords'
+import { MetronomeWidget } from '../theory/MetronomeWidget'
+import { ChordSection } from './ChordSection'
+import { JamPanel } from './JamPanel'
 import { MainWaveform } from './MainWaveform'
 import { SpeedTrainer } from './SpeedTrainer'
 import { StemLane } from './StemLane'
@@ -34,6 +38,7 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
   const [peaksByStem, setPeaksByStem] = useState<Record<string, number[]>>({})
   const [pendingLoopA, setPendingLoopA] = useState<number | null>(null)
   const [newDraft, setNewDraft] = useState<Transcription | null>(null)
+  const [chords, setChords] = useState<ChordsPayload | null>(null)
   const apiRef = useRef(api)
   apiRef.current = api
 
@@ -171,6 +176,8 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
         }}
       />
 
+      <ChordSection videoId={videoId} api={api} onLoaded={setChords} />
+
       {combinedPeaks && (
         <MainWaveform
           peaks={combinedPeaks}
@@ -205,7 +212,11 @@ export function PracticeWorkspace({ videoId, stems }: Props) {
         )}
       </div>
 
+      <JamPanel api={api} chords={chords} />
+
       <SpeedTrainer player={api.player} loop={api.loop} onRateApplied={api.setRate} />
+
+      <MetronomeWidget />
 
       <TabSection videoId={videoId} player={api} newTranscription={newDraft} />
 

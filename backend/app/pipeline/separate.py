@@ -65,6 +65,7 @@ async def separate_song(ctx: JobContext) -> None:
     if _cache_complete(stems_dir, peaks_dir):
         logger.info("Separation cache hit for %s — completing instantly", video_id)
         _upsert_stems(video_id, _durations_from_peaks(peaks_dir))
+        ctx.enqueue_followup("analyze")
         ctx.report("cached", 1.0)
         return
 
@@ -94,6 +95,8 @@ async def separate_song(ctx: JobContext) -> None:
         )
 
     _upsert_stems(video_id, durations)
+    # chord/key analysis chains automatically once stems exist (cache-aware)
+    ctx.enqueue_followup("analyze")
     logger.info(
         "Separated %s end-to-end in %.1fs (6 stems + m4a + peaks)",
         video_id,

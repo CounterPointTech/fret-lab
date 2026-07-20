@@ -42,6 +42,16 @@ async def transcription_file(
     return FileResponse(path, media_type="application/octet-stream")
 
 
+@router.get("/{video_id}/analysis/chords.json")
+async def chords_json(
+    video_id: str = PathParam(pattern=VIDEO_ID_PATTERN),
+) -> FileResponse:
+    path = settings.media_root / video_id / "analysis" / "chords.json"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Chord analysis not found")
+    return FileResponse(path, media_type="application/json")
+
+
 @router.get("/{video_id}/peaks/{stem}.json")
 async def stem_peaks(
     video_id: str = PathParam(pattern=VIDEO_ID_PATTERN),

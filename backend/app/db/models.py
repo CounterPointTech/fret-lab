@@ -30,6 +30,9 @@ class Song(Base):
     thumbnail_url: Mapped[str | None] = mapped_column(Text)
     # queued | downloading | ready | error
     status: Mapped[str] = mapped_column(String(16), default="queued")
+    # filled by the analyze job (chord/key analysis), e.g. "A minor"
+    key_name: Mapped[str | None] = mapped_column(String(32))
+    bpm: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     def to_dict(self) -> dict:
@@ -40,6 +43,8 @@ class Song(Base):
             "duration_s": self.duration_s,
             "thumbnail_url": self.thumbnail_url,
             "status": self.status,
+            "key_name": self.key_name,
+            "bpm": self.bpm,
             "created_at": _iso(self.created_at),
         }
 

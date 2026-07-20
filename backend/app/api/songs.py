@@ -98,6 +98,10 @@ async def get_song(video_id: str = PathParam(pattern=VIDEO_ID_PATTERN)) -> dict:
             select(Stem).where(Stem.song_id == video_id).order_by(Stem.id)
         ).all()
         d["stem_count"] = len(stems)
+        has_analysis = (settings.media_root / video_id / "analysis" / "chords.json").is_file()
+        d["chords_url"] = (
+            f"/api/media/{video_id}/analysis/chords.json" if has_analysis else None
+        )
         return {"song": d, "stems": [s.to_dict() for s in stems]}
 
 
@@ -140,6 +144,37 @@ async def separate_song_endpoint(
         if active is not None:
             return {"job_id": active.id, "already_running": True}
     job_id = queue.enqueue("separate", video_id)
+    return {"job_id": job_id, "already_running": False}
+
+
+@router.post("/songs/{video_id}/analyze", status_code=202)
+async def analyze_song_endpoint(
+    request: Request,
+    video_id: str = PathParam(pattern=VIDEO_ID_PATTERN),
+) -> dict:
+    """Chord timeline + key estimate. Cache-aware; idempotent while running."""
+    queue = request.app.state.job_queue
+    with db_session() as db:
+        song = db.get(Song, video_id)
+        if song is None:
+            raise HTTPException(status_code=404, detail="Song not found")
+        if song.status != "ready":
+            raise HTTPException(
+                status_code=409,
+                detail=f"Song is not ready for analysis (status: {song.status})",
+            )
+        active = db.scalars(
+            select(Job)
+            .where(
+                Job.song_id == video_id,
+                Job.kind == "analyze",
+                Job.status.in_(("queued", "running")),
+            )
+            .order_by(Job.created_at.desc())
+        ).first()
+        if active is not None:
+            return {"job_id": active.id, "already_running": True}
+    job_id = queue.enqueue("analyze", video_id)
     return {"job_id": job_id, "already_running": False}
 
 

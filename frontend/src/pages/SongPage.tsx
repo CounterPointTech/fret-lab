@@ -76,12 +76,19 @@ export function SongPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-24">
-      <nav className="py-6">
-        <Link
-          to="/"
-          className="font-mono text-sm text-stage-300 transition hover:text-amp-300"
-        >
+      <nav className="flex items-center justify-between py-6 font-mono text-sm">
+        <Link to="/" className="text-stage-300 transition hover:text-amp-300">
           ← Library
+        </Link>
+        <Link
+          to={
+            song.key_name
+              ? `/theory?key=${encodeURIComponent(song.key_name)}&song=${song.video_id}`
+              : '/theory'
+          }
+          className="text-stage-300 transition hover:text-amp-300"
+        >
+          Theory Lab →
         </Link>
       </nav>
 
@@ -101,6 +108,14 @@ export function SongPage() {
             {song.channel ?? 'Unknown channel'}
             <span className="mx-2 text-stage-500">·</span>
             <span className="font-mono text-sm">{formatDuration(song.duration_s)}</span>
+            {song.key_name && (
+              <>
+                <span className="mx-2 text-stage-500">·</span>
+                <span className="rounded-full border border-amp-500/40 bg-amp-500/10 px-2.5 py-0.5 font-mono text-xs text-amp-300">
+                  {song.key_name}
+                </span>
+              </>
+            )}
           </p>
         </div>
       </header>

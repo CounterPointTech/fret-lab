@@ -11,13 +11,13 @@ See `CLAUDE.md`. Inspiration: zombieguitar.com — "the fretboard is movable sha
 - **Metronome**: Web Audio lookahead scheduler (reuse Phase 3 scheduler), accent patterns, tap tempo.
 
 ## Tasks
-- [ ] Job kind `analyze`: chord timeline + key estimate → `analysis/chords.json`, stored on Song; auto-run after separation.
-- [ ] Song Workspace: chord timeline lane synced to playback (current chord highlighted, Chordify-style); transpose display with pitch-shift setting.
-- [ ] Theory Lab page: fretboard explorer — pick key/scale/mode (pentatonic, diatonic, harmonic minor) → positions + CAGED boxes; chord explorer (voicings across neck); tuning selector; circle-of-fifths interactive (click key → related chords/scales, highlights fretboard).
-- [ ] Jam Mode: from a song — one click mutes guitar stem, loops chosen section, shows detected key/scale on fretboard with chord-tone highlighting per current chord as the progression plays (the zombieguitar experience). Suggested scales from tonal (e.g., minor pentatonic over minor key).
-- [ ] Metronome widget (BPM, time sig, accent) usable standalone and over loops.
-- [ ] Stretch (only if time): ear-training quiz module (intervals/chords via tonal + AlphaTab synth or WebAudio osc).
-- [ ] Tests: chord-label normalization, key-from-chords estimation, scale/CAGED position generation (known shapes), timeline lookup (time → chord).
+- [x] Job kind `analyze`: chord timeline + key estimate → `analysis/chords.json`, stored on Song; auto-run after separation. (librosa template-chroma + Viterbi — autochord skipped: pins TensorFlow against the CUDA torch stack.)
+- [x] Song Workspace: chord timeline lane synced to playback (current chord highlighted, Chordify-style); transpose display with pitch-shift setting.
+- [x] Theory Lab page: fretboard explorer — pick key/scale/mode (pentatonic, diatonic, harmonic minor) → positions + CAGED boxes; chord explorer (voicings across neck); tuning selector; circle-of-fifths interactive (click key → related chords/scales, highlights fretboard).
+- [x] Jam Mode: from a song — one click mutes guitar stem, loops chosen section, shows detected key/scale on fretboard with chord-tone highlighting per current chord as the progression plays (the zombieguitar experience). Suggested scales from tonal (e.g., minor pentatonic over minor key).
+- [x] Metronome widget (BPM, time sig, accent) usable standalone and over loops.
+- [ ] Stretch (only if time): ear-training quiz module (intervals/chords via tonal + AlphaTab synth or WebAudio osc). — not done (time)
+- [x] Tests: chord-label normalization, key-from-chords estimation, scale/CAGED position generation (known shapes), timeline lookup (time → chord).
 
 ## Acceptance criteria (demonstrate in transcript)
 1. A real song shows a chord timeline scrolling in sync with playback (screenshots at two moments; chords plausibly match the song).
