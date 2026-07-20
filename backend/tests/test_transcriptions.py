@@ -120,3 +120,60 @@ def test_delete_removes_row_and_file(client):
     assert files == []
 
     assert client.delete("/api/transcriptions/9999").status_code == 404
+
+
+# --- Phase 6: editor save-content endpoint ---
+
+
+def test_save_content_flips_source_and_roundtrips(client):
+    _add_song(client)
+    t = _upload(client, "draft.musicxml", b"<score/>").json()["transcription"]
+    assert t["source"] == "upload"
+
+    tex_v1 = '\title "T"\n.\n3.5.4 5.5.4 r.2'
+    resp = client.put(f"/api/transcriptions/{t['id']}/content", json={"alphatex": tex_v1})
+    assert resp.status_code == 200, resp.text
+    saved = resp.json()["transcription"]
+    assert saved["kind"] == "alphatex"
+    assert saved["source"] == "edited"
+    assert saved["file_url"].endswith(f"edit_{t['id']}.alphatex")
+
+    served = client.get(saved["file_url"])
+    assert served.status_code == 200
+    assert served.text == tex_v1
+
+    # second save overwrites the same file (and keeps meta_json when provided)
+    tex_v2 = tex_v1.replace("3.5.4", "6.5.4")
+    resp = client.put(
+        f"/api/transcriptions/{t['id']}/content",
+        json={"alphatex": tex_v2, "meta_json": '{"locks":["0:0:2"]}'},
+    )
+    assert resp.status_code == 200
+    saved2 = resp.json()["transcription"]
+    assert saved2["file_url"] == saved["file_url"]
+    assert saved2["meta_json"] == '{"locks":["0:0:2"]}'
+    assert client.get(saved2["file_url"]).text == tex_v2
+
+    # original upload stays on disk as the raw artifact
+    tdir = config.settings.media_root / SONG_ID / "transcriptions"
+    originals = [p for p in tdir.iterdir() if p.name.endswith("draft.musicxml")]
+    assert len(originals) == 1
+
+
+def test_save_content_missing_transcription(client):
+    resp = client.put("/api/transcriptions/99999/content", json={"alphatex": "x"})
+    assert resp.status_code == 404
+
+
+def test_save_content_rejects_empty_and_oversize(client):
+    _add_song(client)
+    t = _upload(client, "d.alphatex").json()["transcription"]
+    assert (
+        client.put(f"/api/transcriptions/{t['id']}/content", json={"alphatex": ""}).status_code
+        == 422
+    )
+    big = "x" * (2 * 1024 * 1024 + 1)
+    assert (
+        client.put(f"/api/transcriptions/{t['id']}/content", json={"alphatex": big}).status_code
+        == 422
+    )

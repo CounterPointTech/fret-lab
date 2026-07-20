@@ -9,13 +9,13 @@ See `CLAUDE.md`. Phase 5 produces AI drafts (MusicXML/alphaTex). AlphaTab render
 **Natural session split if needed:** (a) selection + read-only inspection + note-property panel; (b) mutations + undo/redo + persistence.
 
 ## Tasks
-- [ ] Selection model: click note in TabViewer → selected (visual highlight); keyboard nav between notes/beats.
-- [ ] Mutations on the AlphaTab score model with re-render: change fret; move to adjacent string (auto-recompute fret for same pitch); change pitch ±semitone; change duration; insert/delete note & rest; toggle techniques: hammer-on/pull-off, slide, bend (simple full/half), palm mute, vibrato; per-note string override "lock".
-- [ ] Undo/redo stack (command pattern over mutations).
-- [ ] Persistence: serialize edited score → MusicXML + alphaTex back to `media/{videoId}/transcriptions/` (autosave debounced + explicit save); "AI draft" label clears to "edited" on first change.
-- [ ] Edit-in-context: "loop selection" button — selected bars become the StemPlayer A-B loop (via Phase 4 sync mapping) with one-click 0.5x + solo-stem preset.
-- [ ] Audition: play edited notes via AlphaTab synth (bar-level) to hear corrections.
-- [ ] Tests: mutation commands (apply/undo symmetry), fret-recompute-on-string-change math, save/reload round-trip preserves edits.
+- [x] Selection model: click note in TabViewer → selected (visual highlight); keyboard nav between notes/beats.
+- [x] Mutations on the AlphaTab score model with re-render: change fret; move to adjacent string (auto-recompute fret for same pitch); change pitch ±semitone; change duration; insert/delete note & rest; toggle techniques: hammer-on/pull-off, slide, bend (simple full/half), palm mute, vibrato; per-note string override "lock".
+- [x] Undo/redo stack (command pattern over mutations — commands mutate, undo/redo restore canonical alphaTex snapshots, which makes apply/undo symmetry structural).
+- [x] Persistence: serialize edited score → **alphaTex only** back to `media/{videoId}/transcriptions/` (autosave debounced + explicit save); "AI draft" label clears to "edited" on first change. *Deviation: AlphaTab 1.8 has no MusicXML exporter — a hand-rolled one would break the "lossless for everything the editor can produce" bar, while AlphaTab's own AlphaTexExporter/importer pair round-trips every editor construct (verified by tests). The original MusicXML draft is kept on disk as the raw AI artifact.*
+- [x] Edit-in-context: "loop selection" button — selected bar becomes the StemPlayer A-B loop (via Phase 4 sync mapping) with one-click 0.5x + solo-stem preset.
+- [x] Audition: play edited notes via AlphaTab synth (bar-level playbackRange) to hear corrections.
+- [x] Tests: mutation commands (apply/undo symmetry), fret-recompute-on-string-change math, save/reload round-trip preserves edits.
 
 ## Acceptance criteria (demonstrate in transcript)
 1. Open an AI draft, change a wrong note's fret and string, hear it via synth (described), and the change survives save + full reload (round-trip shown).

@@ -34,6 +34,7 @@ def get_engine() -> Engine:
 _COLUMN_MIGRATIONS = (
     ("transcriptions", "source", "VARCHAR(16) NOT NULL DEFAULT 'upload'"),
     ("transcriptions", "params_json", "TEXT"),
+    ("transcriptions", "meta_json", "TEXT"),
 )
 
 

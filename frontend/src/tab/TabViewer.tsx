@@ -19,6 +19,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'reac
 import bravuraWoff2Url from '@coderline/alphatab/font/Bravura.woff2?url'
 import soundFontUrl from '@coderline/alphatab/soundfont/sonivox.sf3?url'
 
+import type { Selection as EditorSelection } from './editor/engine'
 import { secondsToTick, tickToSeconds, type SyncModel } from './sync'
 
 export interface TabViewerMediaCallbacks {
@@ -40,6 +41,11 @@ export interface TabViewerHandle {
   playPause(): void
   /** synth mode: AlphaTab synth speed (1 = normal). */
   setSynthSpeed(speed: number): void
+  /** edit mode: replace the displayed score (full re-render + midi regen). */
+  renderScore(score: alphaTab.model.Score): void
+  /** synth mode: play just this tick range (bar audition). */
+  playTickRange(startTick: number, endTick: number): void
+  stopSynth(): void
   readonly api: alphaTab.AlphaTabApi | null
 }
 
@@ -56,6 +62,11 @@ interface Props {
   onScoreLoaded?(info: { title: string; trackNames: string[]; tempo: number }): void
   onError?(message: string): void
   handleRef?: Ref<TabViewerHandle>
+  /** Edit mode: clicks select notes/beats instead of seeking. */
+  editable?: boolean
+  /** Current editor selection to highlight (model string numbering). */
+  selection?: EditorSelection | null
+  onNoteSelect?(sel: EditorSelection): void
 }
 
 const STAGE_100 = '#ece5d8'
@@ -79,21 +90,26 @@ export function TabViewer({
   onScoreLoaded,
   onError,
   handleRef,
+  editable = false,
+  selection = null,
+  onNoteSelect,
 }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const apiRef = useRef<alphaTab.AlphaTabApi | null>(null)
   const [rendering, setRendering] = useState(true)
   const [trackNames, setTrackNames] = useState<string[]>([])
   const [activeTrack, setActiveTrack] = useState(0)
+  const [renderTick, setRenderTick] = useState(0)
 
   // Latest props in refs so the AlphaTab instance survives prop-value changes.
   const syncRef = useRef(sync)
   syncRef.current = sync
   const mediaRef = useRef(media)
   mediaRef.current = media
-  const cbRef = useRef({ onBarClick, onSelectionLoop, onScoreLoaded, onError })
-  cbRef.current = { onBarClick, onSelectionLoop, onScoreLoaded, onError }
+  const cbRef = useRef({ onBarClick, onSelectionLoop, onScoreLoaded, onError, onNoteSelect, editable })
+  cbRef.current = { onBarClick, onSelectionLoop, onScoreLoaded, onError, onNoteSelect, editable }
 
   useEffect(() => {
     const host = hostRef.current
@@ -103,6 +119,7 @@ export function TabViewer({
     const settings = new alphaTab.Settings()
     settings.core.file = fileUrl
     settings.core.logLevel = alphaTab.LogLevel.Warning
+    settings.core.includeNoteBounds = true // note-level hit testing for the editor
     // the vite plugin's font auto-detection fails in dev — pin Bravura explicitly
     settings.core.smuflFontSources = new Map([[alphaTab.FontFileFormat.Woff2, bravuraWoff2Url]])
     settings.player.playerMode =
@@ -150,6 +167,40 @@ export function TabViewer({
     })
 
     api.renderFinished.on(() => setRendering(false))
+    api.postRenderFinished.on(() => setRenderTick((t) => t + 1))
+
+    // Editor selection: note clicks win over beat clicks. AlphaTab fires both
+    // for a click on a note head; the beat-level selection is deferred a task
+    // so a note-level event in the same click can cancel it.
+    const pending = { beatSel: null as EditorSelection | null, noteAt: 0 }
+    api.noteMouseDown.on((note) => {
+      if (!cbRef.current.editable) return
+      pending.beatSel = null
+      pending.noteAt = performance.now()
+      cbRef.current.onNoteSelect?.({
+        bar: note.beat.voice.bar.index,
+        beat: note.beat.index,
+        string: note.string,
+      })
+    })
+    api.beatMouseDown.on((beat) => {
+      if (cbRef.current.editable) {
+        if (performance.now() - pending.noteAt < 80) return
+        pending.beatSel = { bar: beat.voice.bar.index, beat: beat.index, string: null }
+        setTimeout(() => {
+          if (pending.beatSel && performance.now() - pending.noteAt > 80) {
+            cbRef.current.onNoteSelect?.(pending.beatSel)
+          }
+          pending.beatSel = null
+        }, 0)
+        return
+      }
+      if (mode !== 'audio') return
+      const s = syncRef.current
+      if (!s) return
+      const tick = beat.absolutePlaybackStart
+      cbRef.current.onBarClick?.(tickToSeconds(tick, s), tick)
+    })
 
     if (mode === 'audio') {
       api.playerReady.on(() => {
@@ -183,13 +234,6 @@ export function TabViewer({
         }
       })
 
-      api.beatMouseDown.on((beat) => {
-        const s = syncRef.current
-        if (!s) return
-        const tick = beat.absolutePlaybackStart
-        cbRef.current.onBarClick?.(tickToSeconds(tick, s), tick)
-      })
-
       api.playbackRangeChanged.on((args) => {
         const s = syncRef.current
         if (!s || !args.playbackRange) return
@@ -216,6 +260,33 @@ export function TabViewer({
     if (api?.score && mode === 'audio' && sync) applySyncPoints(api, sync)
   }, [sync, mode])
 
+  // Position the selection-highlight overlay over the selected beat/note.
+  useEffect(() => {
+    const overlay = overlayRef.current
+    const api = apiRef.current
+    if (!overlay) return
+    const lookup = api?.renderer?.boundsLookup
+    const beatObj =
+      selection != null
+        ? api?.score?.tracks[0]?.staves[0]?.bars[selection.bar]?.voices[0]?.beats[selection.beat]
+        : undefined
+    const beatBounds = beatObj && lookup ? lookup.findBeat(beatObj) : null
+    if (!selection || !beatBounds) {
+      overlay.style.display = 'none'
+      return
+    }
+    let b = beatBounds.visualBounds
+    if (selection.string != null) {
+      const nb = beatBounds.notes?.find((n) => n.note.string === selection.string)
+      if (nb) b = nb.noteHeadBounds
+    }
+    overlay.style.display = 'block'
+    overlay.style.left = `${b.x - 4}px`
+    overlay.style.top = `${b.y - 4}px`
+    overlay.style.width = `${b.w + 8}px`
+    overlay.style.height = `${b.h + 8}px`
+  }, [selection, renderTick, editable])
+
   useImperativeHandle(
     handleRef,
     (): TabViewerHandle => ({
@@ -238,6 +309,25 @@ export function TabViewer({
       setSynthSpeed(speed: number) {
         const api = apiRef.current
         if (api) api.playbackSpeed = speed
+      },
+      renderScore(score: alphaTab.model.Score) {
+        apiRef.current?.renderScore(score, [0])
+      },
+      playTickRange(startTick: number, endTick: number) {
+        const api = apiRef.current
+        if (!api) return
+        const range = new alphaTab.synth.PlaybackRange()
+        range.startTick = startTick
+        range.endTick = endTick
+        api.playbackRange = range
+        api.tickPosition = startTick
+        api.play()
+      },
+      stopSynth() {
+        const api = apiRef.current
+        if (!api) return
+        api.stop()
+        api.playbackRange = null
       },
       get api() {
         return apiRef.current
@@ -283,6 +373,11 @@ export function TabViewer({
           </p>
         )}
         <div ref={hostRef} className="[&_.at-cursor-bar]:bg-amp-500/15 [&_.at-cursor-beat]:bg-amp-400 [&_.at-selection_div]:bg-amp-300/20" />
+        <div
+          ref={overlayRef}
+          className="pointer-events-none absolute z-10 hidden rounded border-2 border-amp-400 bg-amp-400/15"
+          data-testid="edit-selection"
+        />
       </div>
     </div>
   )

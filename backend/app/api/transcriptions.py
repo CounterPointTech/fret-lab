@@ -168,6 +168,46 @@ async def transcribe_song_endpoint(
     return {"job_id": job_id, "already_running": False}
 
 
+MAX_ALPHATEX_BYTES = 2 * 1024 * 1024
+
+
+class TranscriptionContent(BaseModel):
+    """Edited score serialized by the frontend editor (alphaTex is canonical:
+    AlphaTab's own exporter/importer pair round-trips everything the editor
+    can produce, which MusicXML export would not)."""
+
+    alphatex: str = Field(min_length=1, max_length=MAX_ALPHATEX_BYTES)
+    meta_json: str | None = Field(default=None, max_length=200_000)
+
+
+@router.put("/transcriptions/{transcription_id}/content")
+async def save_transcription_content(
+    transcription_id: int, body: TranscriptionContent
+) -> dict:
+    """Persist editor changes: write the alphaTex next to the original file
+    (which is kept as the raw AI/upload artifact) and repoint the row at it.
+    First save flips source -> 'edited' (clears the "AI draft" label)."""
+    with db_session() as db:
+        row = db.get(Transcription, transcription_id)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Transcription not found")
+        tdir = settings.media_root / row.song_id / "transcriptions"
+        try:
+            tdir.mkdir(parents=True, exist_ok=True)
+            dest = tdir / f"edit_{row.id}.alphatex"
+            dest.write_text(body.alphatex, encoding="utf-8", newline="\n")
+        except OSError as e:
+            logger.exception("Could not store edited transcription %s", transcription_id)
+            raise HTTPException(status_code=500, detail=f"Could not store file: {e}") from e
+        row.kind = "alphatex"
+        row.path = f"{row.song_id}/transcriptions/edit_{row.id}.alphatex"
+        row.source = "edited"
+        if body.meta_json is not None:
+            row.meta_json = body.meta_json
+        db.flush()
+        return {"transcription": row.to_dict()}
+
+
 class TranscriptionPatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     sync_bpm: float | None = Field(default=None, gt=10, lt=400)

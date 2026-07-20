@@ -89,8 +89,9 @@ export interface Transcription {
   kind: 'guitarpro' | 'musicxml' | 'alphatex'
   sync_bpm: number | null
   sync_offset_s: number
-  source: 'upload' | 'generated'
+  source: 'upload' | 'generated' | 'edited'
   params_json: string | null
+  meta_json: string | null
   created_at: string | null
   file_url: string
 }
@@ -138,6 +139,17 @@ export function patchTranscription(
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
+  })
+}
+
+export function saveTranscriptionContent(
+  id: number,
+  content: { alphatex: string; meta_json?: string },
+): Promise<{ transcription: Transcription }> {
+  return request(`/api/transcriptions/${id}/content`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(content),
   })
 }
 
